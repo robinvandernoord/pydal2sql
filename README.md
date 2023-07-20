@@ -90,6 +90,10 @@ cat model_fragment.py | pydal2sql postgres --table person # with args if setting
 # alternatively, you can simply run `pydal2sql` and you will be prompted for the code, which you can then paste.
 ```
 
+### Example with pipx
+
+[![asciicast](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby.svg)](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby)
+
 ### ⚠️ Experimental 🪄✨Magic🌟💻
 
 If you're copy-pasting some `define_table` statements which have validators or defaults that are defined elsewhere,
@@ -100,9 +104,7 @@ This flag will replace all missing variables with a special `Empty` class, which
 prevent `NameError`, `AttributeError` and `TypeError`s.   
 This is of course not production-safe, so it shouldn't be used anywhere else.
 
-### Example with pipx
-
-[![asciicast](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby.svg)](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby)
+[![asciicast](https://asciinema.org/a/UQFaG2DWmXsJYzQ72CXer4oCu.svg)](https://asciinema.org/a/UQFaG2DWmXsJYzQ72CXer4oCu)
 
 ## License
 
