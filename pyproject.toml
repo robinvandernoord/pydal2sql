@@ -19,13 +19,13 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+    "rich",
     "pydal",
 ]
 
 [project.optional-dependencies]
 dev = [
     "hatch",
-    "rich",
     "su6[all]",
     "python-semantic-release < 8",
     "psycopg2-binary",
