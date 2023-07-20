@@ -3,6 +3,7 @@ CLI tool to generate SQL from PyDAL code.
 """
 
 import argparse
+import pathlib
 import select
 import string
 import sys
@@ -13,6 +14,7 @@ import rich
 from rich.prompt import Prompt
 
 from .helpers import flatten
+from .magic import find_missing_variables, generate_magic_code
 
 
 class PrettyParser(argparse.ArgumentParser):  # pragma: no cover
@@ -49,6 +51,7 @@ def handle_cli(
     tables: list[list[str]] = None,
     verbose: bool = False,
     noop: bool = False,
+    magic: bool = False,
 ) -> None:
     """
     Handle user input.
@@ -67,6 +70,8 @@ def handle_cli(
         tables = $tables
         db_type = '$db_type'
 
+        $extra
+
         $code
 
         if not tables:
@@ -79,17 +84,37 @@ def handle_cli(
     )
 
     generated_code = to_execute.substitute(
-        {
-            "tables": flatten(tables or []),
-            "db_type": db_type or "",
-            "code": textwrap.dedent(code),
-        }
+        {"tables": flatten(tables or []), "db_type": db_type or "", "code": textwrap.dedent(code), "extra": ""}
     )
     if verbose or noop:
         rich.print(generated_code, file=sys.stderr)
 
     if not noop:
-        exec(generated_code)  # nosec: B102
+        try:
+            exec(generated_code)  # nosec: B102
+        except NameError:
+            # something is missing!
+            missing_vars = find_missing_variables(generated_code)
+            if not magic:
+                rich.print(
+                    f"Your code is missing some variables: {missing_vars}. Add these or try --magic", file=sys.stderr
+                )
+            else:
+                extra_code = generate_magic_code(missing_vars)
+
+                generated_code = to_execute.substitute(
+                    {
+                        "tables": flatten(tables or []),
+                        "db_type": db_type or "",
+                        "extra": extra_code,
+                        "code": textwrap.dedent(code),
+                    }
+                )
+
+                if verbose:
+                    print(generated_code, file=sys.stderr)
+
+                exec(generated_code)  # nosec: B102
 
 
 def app() -> None:  # pragma: no cover
@@ -108,6 +133,8 @@ def app() -> None:  # pragma: no cover
         epilog="Example: [i]cat models.py | pydal2sql sqlite[/i]",
     )
 
+    parser.add_argument("filename", nargs="?", help="Which file to load? Can also be done with stdin.")
+
     parser.add_argument(
         "db_type", nargs="?", help="Which database dialect to generate ([blue]postgres, sqlite, mysql[/blue])"
     )
@@ -116,6 +143,10 @@ def app() -> None:  # pragma: no cover
 
     parser.add_argument(
         "--noop", "-n", help="Only show code, don't run it.", action=argparse.BooleanOptionalAction, default=False
+    )
+
+    parser.add_argument(
+        "--magic", "-m", help="Perform magic to fix missing vars.", action=argparse.BooleanOptionalAction, default=False
     )
 
     parser.add_argument(
@@ -129,9 +160,11 @@ def app() -> None:  # pragma: no cover
 
     args = parser.parse_args()
 
-    db_type = args.db_type
+    db_type = args.db_type or args.filename
 
-    if not has_stdin_data():
+    load_file_mode = (filename := args.filename) and filename.endswith(".py")
+
+    if not (has_stdin_data() or load_file_mode):
         if not db_type:
             db_type = Prompt.ask("Which database type do you want to use?", choices=["sqlite", "postgres", "mysql"])
 
@@ -139,6 +172,10 @@ def app() -> None:  # pragma: no cover
 
     # else: data from stdin
     # py code or cli args should define settings.
+    if load_file_mode:
+        db_type = args.db_type
+        text = pathlib.Path(filename).read_text()
+    else:
+        text = sys.stdin.read()
 
-    text = sys.stdin.read()
-    return handle_cli(text, db_type, args.table, verbose=args.verbose, noop=args.noop)
+    return handle_cli(text, db_type, args.table, verbose=args.verbose, noop=args.noop, magic=args.magic)

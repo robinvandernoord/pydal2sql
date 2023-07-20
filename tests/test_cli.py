@@ -1,6 +1,7 @@
 import pytest
 
 from src.pydal2sql.cli import handle_cli
+from src.pydal2sql.magic import find_missing_variables
 
 
 def test_cli(capsys):
@@ -54,18 +55,18 @@ def test_cli(capsys):
     assert "db.define_table(" not in captured.err
 
     handle_cli(
-            code,
-            None,  # <-  set in code so no error
-            None,
-            verbose=True,
-            noop=True,
-        )
+        code,
+        None,  # <-  set in code so no error
+        None,
+        verbose=True,
+        noop=True,
+    )
     captured = capsys.readouterr()
-
 
     assert "CREATE TABLE" not in captured.out
     assert "CREATE TABLE" not in captured.err
     assert "db.define_table(" in captured.err
+
 
 def test_cli_guess_sqlite(capsys):
     code = """
@@ -95,3 +96,56 @@ def test_cli_guess_sqlite(capsys):
     print(captured.err)
 
     assert "CREATE TABLE" in captured.out
+
+
+def test_magic(capsys):
+    code_with_imports = """
+    # 🪄 ✨
+    import math
+    from math import ceil
+    from typing import *
+    
+    # floor should be unkown
+    
+    numbers: Iterable = [1,2,3]
+    
+    math.ceil(max(numbers))
+    ceil(max(numbers))
+    floor(max(numbers))
+    
+    db.define_table('empty')
+    
+    db_type = 'pymysql'
+    """
+
+    handle_cli(code_with_imports)
+    captured = capsys.readouterr()
+
+    assert "Your code is missing some variables: {'floor'}" in captured.err
+
+    handle_cli(code_with_imports, magic=True, verbose=True)
+    captured = capsys.readouterr()
+
+    assert 'CREATE TABLE' in captured.out
+    assert "Empty()" in captured.err
+
+    with_syntax_error = """
+    if true:
+    print('bye'
+    """
+
+    with pytest.raises(SyntaxError):
+        handle_cli(with_syntax_error, magic=True)
+    with pytest.raises(SyntaxError):
+        find_missing_variables(with_syntax_error)
+
+    with_del = """
+    del a
+    print(a)
+    """
+
+    # unfixable so magic = False here
+    handle_cli(with_del, magic=False)
+    captured = capsys.readouterr()
+
+    assert "{'a'}" in captured.err

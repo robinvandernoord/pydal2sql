@@ -66,6 +66,8 @@ pipx install pydal2sql
 
 ## cli
 
+Given a Python file:
+
 ```python
 # model_fragment.py
 db.define_table(
@@ -78,11 +80,25 @@ db.define_table(
 # tables = ['person']
 ```
 
+Then in the terminal:
+
 ```bash
 cat model_fragment.py | pydal2sql # without cli args if settings are set in code, or
 cat model_fragment.py | pydal2sql postgres --table person # with args if settings are not in code
 # both output the CREATE TABLE statements to stdout.
+
+# alternatively, you can simply run `pydal2sql` and you will be prompted for the code, which you can then paste.
 ```
+
+### ⚠️ Experimental 🪄✨Magic🌟💻
+
+If you're copy-pasting some `define_table` statements which have validators or defaults that are defined elsewhere,
+the SQL generation could crash due to msising variables. However, if these variables are irrelevant to the samentics of
+the table definition (i.e. only used at runtime, not for the schema definition), you can now try the `--magic` flag.
+
+This flag will replace all missing variables with a special `Empty` class, which does nothing but
+prevent `NameError`, `AttributeError` and `TypeError`s.   
+This is of course not production-safe, so it shouldn't be used anywhere else.
 
 ### Example with pipx
 

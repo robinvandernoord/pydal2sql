@@ -77,7 +77,7 @@ def generate_sql(
         db_type = getattr(define_table._db, "_dbname", None)
 
         if db_type is None:
-            raise ValueError("Please manually define a database type!")
+            raise ValueError("Database dialect could not be guessed from code; Please manually define a database type!")
 
     with TempdirOrExistingDir(db_folder) as db_folder:
         migrator = _build_dummy_migrator(db_type, db_folder=db_folder)
