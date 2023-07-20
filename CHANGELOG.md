@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.2 (2023-07-20)
+
+### Fix
+
+* Moved rich from dev to actual dependencies ([`03409c0`](https://github.com/robinvandernoord/pydal2sql/commit/03409c04ab7b01f49870f863956578b12b3de968))
+
 ## v0.2.1 (2023-07-20)
 
 ### Fix
