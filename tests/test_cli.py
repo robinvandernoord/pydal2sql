@@ -66,3 +66,32 @@ def test_cli(capsys):
     assert "CREATE TABLE" not in captured.out
     assert "CREATE TABLE" not in captured.err
     assert "db.define_table(" in captured.err
+
+def test_cli_guess_sqlite(capsys):
+    code = """
+       db = DAL('sqlite://:memory:', migrate=False)
+    
+       db.define_table(
+           "person",
+           Field(
+               "name",
+               "string",
+               nullable=False,
+           ),
+           Field("age", "integer", default=18),
+           Field("float", "decimal(2,3)"),
+           Field("nicknames", "list:string"),
+           Field("obj", "json"),
+       )
+       """
+
+    handle_cli(
+        code,
+        None,  # <-  set in code so no error
+        None
+    )
+    captured = capsys.readouterr()
+
+    print(captured.err)
+
+    assert "CREATE TABLE" in captured.out

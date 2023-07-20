@@ -73,8 +73,9 @@ def generate_sql(
     db_folder is the database folder where migration (`.table`) files are stored.
         By default, a random temporary dir is created.
     """
-    if db_type is None:
+    if not db_type:
         db_type = getattr(define_table._db, "_dbname", None)
+
         if db_type is None:
             raise ValueError("Please manually define a database type!")
 
