@@ -60,9 +60,12 @@ CREATE TABLE person
 
 ```console
 pip install pydal2sql
+# or
+pipx install pydal2sql
 ```
 
 ## cli
+
 ```python
 # model_fragment.py
 db.define_table(
@@ -80,6 +83,10 @@ cat model_fragment.py | pydal2sql # without cli args if settings are set in code
 cat model_fragment.py | pydal2sql postgres --table person # with args if settings are not in code
 # both output the CREATE TABLE statements to stdout.
 ```
+
+### Example with pipx
+
+[![asciicast](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby.svg)](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby)
 
 ## License
 
