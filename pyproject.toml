@@ -31,6 +31,11 @@ dev = [
     "pymysql",
 ]
 
+all = [
+    "psycopg2-binary",
+    "pymysql",
+]
+
 psql = [
     "psycopg2-binary"
 ]
