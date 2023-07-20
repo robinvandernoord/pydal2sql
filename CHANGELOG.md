@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.1 (2023-07-20)
+
+### Fix
+
+* Add dependency to rich ([`ffa8ef7`](https://github.com/robinvandernoord/pydal2sql/commit/ffa8ef7a23b3b02442e650a8be134356b6ef495c))
+
 ## v0.2.0 (2023-07-20)
 
 ### Feature
