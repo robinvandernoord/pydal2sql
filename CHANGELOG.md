@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.3 (2023-07-20)
+
+### Fix
+
+* Db type sometimes was an empty string, which is not None ([`d129cad`](https://github.com/robinvandernoord/pydal2sql/commit/d129cadacab0b8e5cef4799e6bff49c92d09731e))
+
 ## v0.2.2 (2023-07-20)
 
 ### Fix
