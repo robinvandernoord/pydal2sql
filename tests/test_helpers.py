@@ -16,9 +16,7 @@ def test_flatten():
 
 
 def test_get_typing_args():
-    assert get_typing_args(typing.Union["str", str, typing.Literal["str", "int"]]) == [
-        str, str, "str", "int"
-    ]
+    assert get_typing_args(typing.Union["str", str, typing.Literal["str", "int"]]) == [str, str, "str", "int"]
 
 
 def test_TempdirOrExistingDir():

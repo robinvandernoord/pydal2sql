@@ -7,12 +7,11 @@ import types
 import typing
 from contextlib import contextmanager
 
-# todo: add infinite recurse?
-T = typing.TypeVar("T")
-Recurse = typing.Iterable[typing.Iterable[typing.Iterable[T] | T] | T]
+T = typing.TypeVar("T", bound=typing.Any)
+Recurse = typing.Union[T, typing.Iterable["Recurse[T]"]]
 
 
-def _flatten(xs: Recurse[T]) -> typing.Generator[T, None, None]:
+def _flatten(xs: typing.Iterable[T | Recurse[T]]) -> typing.Generator[T, None, None]:
     """
     Flatten recursively.
     """

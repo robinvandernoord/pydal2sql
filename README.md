@@ -35,7 +35,7 @@ db.define_table(
     Field("float", "decimal(2,3)"),
     Field("nicknames", "list:string"),
     Field("obj", "json"),
-),
+)
 
 print(
     generate_sql(
@@ -60,6 +60,25 @@ CREATE TABLE person
 
 ```console
 pip install pydal2sql
+```
+
+## cli
+```python
+# model_fragment.py
+db.define_table(
+    "person",
+    Field(...)
+)
+
+# optionally:
+# db_type = 'postgres'
+# tables = ['person']
+```
+
+```bash
+cat model_fragment.py | pydal2sql # without cli args if settings are set in code, or
+cat model_fragment.py | pydal2sql postgres --table person # with args if settings are not in code
+# both output the CREATE TABLE statements to stdout.
 ```
 
 ## License

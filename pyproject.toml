@@ -19,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "pydal"
+    "pydal",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +40,9 @@ mysql = [
 ]
 
 # sqlite = sqlite3
+
+[project.scripts]
+pydal2sql = "pydal2sql.cli:app"
 
 [project.urls]
 Documentation = "https://github.com/robinvandernoord/pydal2sql#readme"

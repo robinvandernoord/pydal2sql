@@ -26,6 +26,9 @@ def test_main():
 
     generated = {}
 
+    with pytest.raises(ValueError):
+        generate_sql(db.person, db_type=None)
+
     for database_type in SUPPORTED_DATABASE_TYPES:
         generated[database_type] = sql = generate_sql(db.person, db_type=database_type)
 
