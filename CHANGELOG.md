@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2023-07-20)
+
+### Feature
+
+* 🪄✨ Add`--magic`™️ to the cli tooll! ([`b3f2409`](https://github.com/robinvandernoord/pydal2sql/commit/b3f24091a9201d60e392ac03a5360df35cdabc3e))
+
 ## v0.2.4 (2023-07-20)
 
 ### Docs
