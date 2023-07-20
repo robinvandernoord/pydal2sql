@@ -26,7 +26,7 @@ dependencies = [
 dev = [
     "hatch",
     "su6[all]",
-    "python-semantic-release",
+    "python-semantic-release < 8",
     "psycopg2-binary",
     "pymysql",
 ]
