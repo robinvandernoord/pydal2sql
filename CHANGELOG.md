@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.1 (2023-07-20)
+
+### Documentation
+
+* **readme:** Add another video ([`ce4312d`](https://github.com/robinvandernoord/pydal2sql/commit/ce4312deb4e9ef6b9261971214d88afc3c431345))
+
 ## v0.3.0 (2023-07-20)
 
 ### Feature
