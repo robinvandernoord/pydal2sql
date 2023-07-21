@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-07-21)
+
+### Feature
+
+* **cli:** Use `tool.pydal2sql` in pyproject.toml to set default settings (which can normally be set with cli flags) ([`9c67f34`](https://github.com/robinvandernoord/pydal2sql/commit/9c67f3465a896f95c465ffcbeb51f90c84eb0291))
+
 ## v0.3.1 (2023-07-20)
 
 ### Documentation
