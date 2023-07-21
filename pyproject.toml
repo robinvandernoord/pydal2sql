@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
     "rich",
     "pydal",
+    "configuraptor >= 1.15",
 ]
 
 [project.optional-dependencies]
@@ -86,6 +87,11 @@ exclude = []
 coverage = 100
 badge = true
 
+[tool.pydal2sql]
+db_type = "postgres"
+magic = true
+tables = ["person"]
+
 [tool.black]
 target-version = ["py310"]
 line-length = 120
@@ -149,7 +155,8 @@ extend-ignore = [
 extend-exclude = ["*.bak/", "venv*/"]
 
 ignore = [
-    "RUF013" # implicit optional
+    "RUF013", # implicit optional
+    "RUF012",  # ClassVar
 ]
 
 [tool.bandit]

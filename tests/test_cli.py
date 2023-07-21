@@ -1,6 +1,6 @@
 import pytest
 
-from src.pydal2sql.cli import handle_cli
+from src.pydal2sql.cli import handle_cli, CliConfig
 from src.pydal2sql.magic import find_missing_variables
 
 
@@ -149,3 +149,10 @@ def test_magic(capsys):
     captured = capsys.readouterr()
 
     assert "{'a'}" in captured.err
+
+
+def test_config():
+    config = CliConfig.load()
+
+    assert 'CliConfig' in repr(config)  # version with colors
+    assert 'CliConfig(' in str(config)  # text-only version

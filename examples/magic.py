@@ -12,4 +12,6 @@ db.define_table(
     Field("birthday", "datetime", default=datetime.datetime.utcnow()),
 )
 
+db.define_table("empty")
+
 db_type = "sqlite"

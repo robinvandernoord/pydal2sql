@@ -90,6 +90,22 @@ cat model_fragment.py | pydal2sql postgres --table person # with args if setting
 # alternatively, you can simply run `pydal2sql` and you will be prompted for the code, which you can then paste.
 ```
 
+### Config via pyproject.toml
+
+You can also configure settings via project settings instead of cli flags:
+
+```toml
+[tool.pydal2sql]
+db_type = "postgres" # postgres, mysql or sqlite
+filename = "examples/magic.py"  # path to Python file to load
+magic = true # bool
+verbose = true # bool
+noop = false # bool
+tables = ["person"] # list of tables
+```
+
+All keys are optional.
+
 ### Example with pipx
 
 [![asciicast](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby.svg)](https://asciinema.org/a/upl4wB4QPDf9qO278ijWyPMby)
