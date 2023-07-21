@@ -72,12 +72,22 @@ def find_missing_variables(code_str: str) -> set[str]:
         if isinstance(node, ast.For) and isinstance(node.target, ast.Name):
             loop_variables.add(node.target.id)
 
-    traverse_ast(tree, collect_variables)
-    traverse_ast(tree, collect_definitions)
-    traverse_ast(tree, collect_imported_names)
-    traverse_ast(tree, collect_imports)
-    traverse_ast(tree, collect_loop_variables)
+    def collect_everything(node: ast.AST) -> None:
+        collect_variables(node)
+        collect_definitions(node)
+        collect_imported_names(node)
+        collect_imports(node)
+        collect_loop_variables(node)
 
+    # ChatGPT produced (4.20s for 10k):
+    # traverse_ast(tree, collect_variables)
+    # traverse_ast(tree, collect_definitions)
+    # traverse_ast(tree, collect_imported_names)
+    # traverse_ast(tree, collect_imports)
+    # traverse_ast(tree, collect_loop_variables)
+
+    # manually rewritten (2.19s for 10k):
+    traverse_ast(tree, collect_everything)
     return {
         var
         for var in used_variables
@@ -116,8 +126,17 @@ def find_missing_variables(code_str: str) -> set[str]:
 #     if toble := True:
 #         print(toble)
 #     """
+#
+#     # import timeit
+#     #
+#     # print(
+#     #     timeit.timeit(lambda: find_missing_variables(code_string), number=10000)
+#     #
+#     #
+#     # )
+#
 #     missing_variables = find_missing_variables(code_string)
-#     assert missing_variables == {"c", "xyz", "ceil", "e"}
+#     assert missing_variables == {"c", "xyz", "ceil", "e"}, missing_variables
 
 
 def generate_magic_code(missing_vars: set[str]) -> str:
