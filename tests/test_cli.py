@@ -11,7 +11,7 @@ def test_cli(capsys):
         Field(
             "name",
             "string",
-            nullable=False,
+            notnull=True,
         ),
         Field("age", "integer", default=18),
         Field("float", "decimal(2,3)"),
@@ -77,7 +77,7 @@ def test_cli_guess_sqlite(capsys):
            Field(
                "name",
                "string",
-               nullable=False,
+               notnull=True,
            ),
            Field("age", "integer", default=18),
            Field("float", "decimal(2,3)"),

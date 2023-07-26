@@ -3,7 +3,7 @@ db.define_table(
     Field(
         "name",
         "string",
-        nullable=False,
+        notnull=True,
     ),
     Field("age", "integer", default=18),
     Field("float", "decimal(2,3)"),

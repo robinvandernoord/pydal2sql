@@ -6,7 +6,7 @@ db.define_table(
     Field(
         "name",
         "string",
-        nullable=False,
+        notnull=True,
         default=my_method.new_uuid()
     ),
     Field("birthday", "datetime", default=datetime.datetime.utcnow()),

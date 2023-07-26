@@ -82,7 +82,7 @@ def handle_cli(
             tables = db._tables
 
         for table in tables:
-            print(generate_sql(db[table], db_type))
+            print(generate_sql(db[table], db_type=db_type))
     """
         )
     )

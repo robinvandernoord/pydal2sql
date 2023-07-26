@@ -7,8 +7,7 @@ from src.pydal2sql.core import _build_dummy_migrator
 from src.pydal2sql.helpers import TempdirOrExistingDir
 
 
-def test_main():
-    # folder = tempfile.TemporaryDirectory.name
+def test_create():
     db = pydal.DAL(None, migrate=False)  # <- without running database or with a different type of database
 
     db.define_table(
@@ -16,7 +15,7 @@ def test_main():
         Field(
             "name",
             "string",
-            nullable=False,
+            notnull=True,
         ),
         Field("age", "integer", default=18),
         Field("float", "decimal(2,3)"),
@@ -27,6 +26,7 @@ def test_main():
     generated = {}
 
     with pytest.raises(ValueError):
+        # db type can't be guessed if the db connection string is None and db_type is also None:
         generate_sql(db.person, db_type=None)
 
     for database_type in SUPPORTED_DATABASE_TYPES:
@@ -49,6 +49,48 @@ def test_main():
     assert "ENGINE=InnoDB CHARACTER SET utf8" in generated["pymysql"]
 
 
+def test_alter():
+    db = pydal.DAL(None, migrate=False)  # <- without running database or with a different type of database
+
+    old = db.define_table(
+        "my_table",
+        Field(
+            "name",
+            "string",
+            notnull=False,
+        ),
+        Field("age", "integer", default=18),
+        Field("float", "decimal(2,3)"),
+        Field("nicknames", "list:string"),
+        Field("obj", "json"),
+    )
+
+    new = db.define_table(
+        "my_table_new",
+        Field(
+            "name",
+            "string",
+            notnull=True,
+        ),
+        Field("birthday", "datetime"),  # replaced age with birthday
+
+        # removed some properties
+        Field("nicknames", "string"),  # your nickname must now be a varchar instead of text.
+
+        Field("obj", "integer"),  # total type change
+    )
+
+    alter_statements = generate_sql(old, new, db_type="psql")
+
+    assert "NOT NULL" in alter_statements
+    assert "DROP COLUMN float" in alter_statements
+
+    alter_statements = generate_sql(old, new, db_type="sqlite")
+
+    assert "NOT NULL" in alter_statements
+    assert "DROP COLUMN float" in alter_statements
+
+
 def test_invalid_dbtype():
     with pytest.raises(ValueError):
         with TempdirOrExistingDir() as temp_dir:
@@ -63,8 +105,8 @@ def test_guess_db_type():
         sql = generate_sql(empty)
 
         assert (
-            sql.strip()
-            == """CREATE TABLE "empty"(
+                sql.strip()
+                == """CREATE TABLE "empty"(
     "id" INTEGER PRIMARY KEY AUTOINCREMENT
 );""".strip()
         )
