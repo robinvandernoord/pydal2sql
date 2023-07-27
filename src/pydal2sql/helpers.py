@@ -6,6 +6,7 @@ import tempfile
 import types
 import typing
 from contextlib import contextmanager
+from pathlib import Path
 
 T = typing.TypeVar("T", bound=typing.Any)
 Recurse = typing.Union[T, typing.Iterable["Recurse[T]"]]
@@ -75,7 +76,7 @@ def get_typing_args(some: ANY_TYPE) -> list[type | str]:
 
 
 @contextmanager
-def TempdirOrExistingDir(folder_path: str = None) -> typing.Generator[str, None, None]:
+def TempdirOrExistingDir(folder_path: typing.Optional[str | Path] = None) -> typing.Generator[str, None, None]:
     """
     Either use db_folder or create a tempdir.
 
@@ -87,5 +88,7 @@ def TempdirOrExistingDir(folder_path: str = None) -> typing.Generator[str, None,
     if folder_path is None:
         tmp_dir = tempfile.TemporaryDirectory()
         yield tmp_dir.name
+    elif isinstance(folder_path, Path):
+        yield str(folder_path)
     else:
         yield folder_path

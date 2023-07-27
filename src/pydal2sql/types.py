@@ -1,7 +1,6 @@
 """
 Contains types for core.py.
 """
-
 import typing
 
 SUPPORTED_DATABASE_TYPES = typing.Literal["psycopg2", "sqlite3", "pymysql"]

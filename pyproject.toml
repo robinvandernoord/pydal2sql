@@ -21,6 +21,7 @@ classifiers = [
 dependencies = [
     "rich",
     "pydal",
+    "typer",
     "configuraptor >= 1.15",
 ]
 

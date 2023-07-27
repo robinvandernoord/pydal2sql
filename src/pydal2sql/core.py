@@ -1,11 +1,9 @@
 """
 Main functionality.
 """
-import os
-import pickle
+import pickle  # nosec: B403
 import typing
 from pathlib import Path
-from pprint import pprint
 
 import pydal
 from pydal.adapters import MySQL, Postgre, SQLAdapter, SQLite
@@ -16,11 +14,12 @@ from .helpers import TempdirOrExistingDir, get_typing_args
 from .types import SUPPORTED_DATABASE_TYPES, SUPPORTED_DATABASE_TYPES_WITH_ALIASES
 
 
-class DummyDAL(pydal.DAL):
-    def commit(self):
+class DummyDAL(pydal.DAL):  # type: ignore
+    def commit(self) -> None:
         """
         Do Nothing
         """
+
 
 def _build_dummy_migrator(_driver_name: SUPPORTED_DATABASE_TYPES_WITH_ALIASES, /, db_folder: str) -> Migrator:
     """
@@ -71,8 +70,8 @@ def _build_dummy_migrator(_driver_name: SUPPORTED_DATABASE_TYPES_WITH_ALIASES, /
 
 
 def generate_create_statement(
-        define_table: Table, db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None, *, db_folder: str = None
-):
+    define_table: Table, db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None, *, db_folder: str = None
+) -> str:
     """
        Given a Table object (result of `db.define_table('mytable')` or simply db.mytable) \
            and a db type (e.g. postgres, sqlite, mysql), generate the `CREATE TABLE` SQL for that dialect.
@@ -102,8 +101,17 @@ def generate_create_statement(
         return sql
 
 
-def sql_fields_through_tablefile(define_table: Table, db_folder: str | Path = None,
-                                 db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None):
+def sql_fields_through_tablefile(
+    define_table: Table,
+    db_folder: typing.Optional[str | Path] = None,
+    db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None,
+) -> dict[str, typing.Any]:
+    if not db_type:
+        db_type = getattr(define_table._db, "_dbname", None)
+
+        if db_type is None:
+            raise ValueError("Database dialect could not be guessed from code; Please manually define a database type!")
+
     with TempdirOrExistingDir(db_folder) as db_folder:
         migrator = _build_dummy_migrator(db_type, db_folder=db_folder)
 
@@ -114,17 +122,25 @@ def sql_fields_through_tablefile(define_table: Table, db_folder: str | Path = No
         )
 
         with (Path(db_folder) / define_table._dbt).open("rb") as tfile:
-            return pickle.load(tfile)
+            loaded_tables = pickle.load(tfile)  # nosec B301
+
+    return typing.cast(dict[str, typing.Any], loaded_tables)
 
 
 def generate_alter_statement(
-        define_table_old: Table,
-        define_table_new: Table,
-        /,
-        db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None,
-        *,
-        db_folder: str = None,
+    define_table_old: Table,
+    define_table_new: Table,
+    /,
+    db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None,
+    *,
+    db_folder: str = None,
 ) -> str:
+    if not db_type:
+        db_type = getattr(define_table_old._db, "_dbname", None) or getattr(define_table_new._db, "_dbname", None)
+
+        if db_type is None:
+            raise ValueError("Database dialect could not be guessed from code; Please manually define a database type!")
+
     result = ""
 
     # other db_folder than new!
@@ -151,7 +167,7 @@ def generate_alter_statement(
                 old_fields,
                 new_fields,
                 str(db_folder_path / "<deprecated>"),
-                fake_migrate=True
+                fake_migrate=True,
             )
 
             with sql_log.open() as f:
@@ -168,12 +184,12 @@ def generate_alter_statement(
 
 
 def generate_sql(
-        define_table: Table,
-        define_table_new: Table = None,
-        /,
-        db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None,
-        *,
-        db_folder: str = None,
+    define_table: Table,
+    define_table_new: Table = None,
+    /,
+    db_type: SUPPORTED_DATABASE_TYPES_WITH_ALIASES = None,
+    *,
+    db_folder: str = None,
 ) -> str:
     if define_table_new:
         return generate_alter_statement(define_table, define_table_new, db_type=db_type, db_folder=db_folder)
