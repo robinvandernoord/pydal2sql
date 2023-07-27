@@ -153,9 +153,13 @@ class Config(AbstractConfig):
     """
 
     # settings go here
+    filename: Optional[str] = None
+    magic: bool = False
+    noop: bool = False
+    tables: Optional[list[str]] = None
 
 
-MaybeConfig = typing.Optional[Config]
+MaybeConfig = Optional[Config]
 
 
 def _get_pydal2sql_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeConfig:

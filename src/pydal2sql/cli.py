@@ -1,13 +1,16 @@
 import sys
 import typing
+from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
 from rich import print
+from rich.prompt import Prompt
 from typer import Argument
 from typing_extensions import Never
 
 from .__about__ import __version__
+from .cli_support import handle_cli, has_stdin_data
 from .typer_support import (
     DEFAULT_VERBOSITY,
     ApplicationState,
@@ -24,6 +27,9 @@ T = typing.TypeVar("T")
 
 OptionalArgument = Annotated[Optional[T], Argument()]
 # usage: (myparam: OptionalArgument[some_type])
+
+OptionalOption = Annotated[Optional[T], typer.Option()]
+# usage: (myparam: OptionalOption[some_type])
 
 ### end typing stuff, start app:
 
@@ -53,16 +59,54 @@ def danger(*args: str) -> None:
 
 
 @app.command()
-def create(filename: OptionalArgument[str] = None, db_type: DB_Types = None) -> None:
+def create(
+    filename: OptionalArgument[str] = None,
+    tables: Annotated[
+        Optional[list[str]],
+        typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
+    ] = None,
+    db_type: Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")] = None,
+    magic: Optional[bool] = None,
+    noop: Optional[bool] = None,
+) -> None:
     """
+    todo: docs
 
     Examples:
         pydal2sql create models.py
         cat models.py | pydal2sql
         pydal2sql # output from stdin
     """
-    print(filename)
-    print(db_type.value if db_type else None)
+    config = state.update_config(filename=filename, magic=magic, noop=noop, tables=tables)
+
+    load_file_mode = (filename := config.filename) and filename.endswith(".py")
+
+    db_type = db_type.value if db_type else None
+
+    if not (has_stdin_data() or load_file_mode):
+        if not db_type:
+            db_type = Prompt.ask("Which database type do you want to use?", choices=["sqlite", "postgres", "mysql"])
+
+        print("Please paste your define tables code below and press ctrl-D when finished.", file=sys.stderr)
+
+        # else: data from stdin
+        # py code or cli args should define settings.
+
+    if load_file_mode and filename:
+        db_type = db_type
+        text = Path(filename).read_text()
+    else:
+        text = sys.stdin.read()
+        print("---", file=sys.stderr)
+
+    handle_cli(
+        text,
+        db_type,
+        tables=config.tables,
+        verbose=state.verbosity > Verbosity.normal,
+        noop=config.noop,
+        magic=config.magic,
+    )
 
 
 @app.command()
@@ -71,6 +115,12 @@ def alter(
     filename_after: OptionalArgument[str] = None,
     db_type: DB_Types = None,
 ) -> None:
+    """"
+    Todo:
+        - docs
+        - git
+        - etc.
+    """
     print(filename_before)
     print(filename_after)
     print(db_type.value if db_type else None)
@@ -104,6 +154,10 @@ def main(
 ) -> None:
     """
     This callback will run before every command, setting the right global flags.
+
+    Todo:
+        --noop
+        --magic
 
     Args:
         ctx: context to determine if a subcommand is passed, etc
