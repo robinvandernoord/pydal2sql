@@ -10,7 +10,7 @@ from typer import Argument
 from typing_extensions import Never
 
 from .__about__ import __version__
-from .cli_support import handle_cli, has_stdin_data
+from .cli_support import handle_cli, has_stdin_data, get_file_for_commit
 from .typer_support import (
     DEFAULT_VERBOSITY,
     ApplicationState,
@@ -125,6 +125,13 @@ def alter(
     print(filename_after)
     print(db_type.value if db_type else None)
 
+
+@app.command()
+def debug(filename: str):
+    print(
+        get_file_for_commit(filename, ),
+        get_file_for_commit(filename, "6f46d835b2a53cef1d6926b5ccbf9a723ad57197")
+    )
 
 def show_config_callback() -> Never:
     """

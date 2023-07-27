@@ -1,13 +1,20 @@
 """
 CLI-Agnostic support.
 """
+import io
+import os
 import select
 import string
 import sys
 import textwrap
 import typing
+from pathlib import Path
 
+from typing import Optional, Any
+
+import git
 import rich
+from black import find_project_root
 
 from .helpers import flatten
 from .magic import find_missing_variables, generate_magic_code
@@ -32,13 +39,55 @@ def has_stdin_data() -> bool:  # pragma: no cover
     )
 
 
+def find_git_root() -> Optional[Path]:
+    folder, reason = find_project_root(None)
+    if reason != ".git directory":
+        return None
+    return folder
+
+
+def find_git_repo(repo: git.Repo = None) -> git.Repo:
+    if repo:
+        return repo
+
+    root = find_git_root()
+    return git.Repo(str(root))
+
+
+def latest_commit(repo: git.Repo = None) -> git.Commit:
+    repo = find_git_repo(repo)
+    return repo.head.commit
+
+
+def commit_by_id(commit_hash: str, repo: git.Repo = None) -> git.Commit:
+    repo = find_git_repo(repo)
+    return repo.commit(commit_hash)
+
+
+def get_file_for_commit(filename: str, commit_version="latest", repo: git.Repo = None) -> str:
+    repo = find_git_repo(repo)
+    if commit_version == "latest":
+        commit = latest_commit(repo)
+    else:
+        commit = commit_by_id(commit_version, repo)
+
+    file_path = str(Path(filename).resolve())
+    # relative to the .git folder:
+    relative_file_path = file_path.removeprefix(f"{repo.working_dir}/")
+
+    file_at_commit: git.objects.blob.Blob = commit.tree / relative_file_path
+
+    with io.BytesIO(file_at_commit.data_stream.read()) as f:
+        return f.read().decode('utf-8')
+
+
 def handle_cli(
     code: str,
-    db_type: typing.Optional[str] = None,
-    tables: typing.Optional[list[str] | list[list[str]]] = None,
-    verbose: typing.Optional[bool] = False,
-    noop: typing.Optional[bool] = False,
-    magic: typing.Optional[bool] = False,
+    db_type: Optional[str] = None,
+    tables: Optional[list[str] | list[list[str]]] = None,
+    verbose: Optional[bool] = False,
+    noop: Optional[bool] = False,
+    magic: Optional[bool] = False,
 ) -> None:
     """
     Handle user input.

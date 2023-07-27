@@ -23,6 +23,7 @@ dependencies = [
     "pydal",
     "typer",
     "configuraptor >= 1.15",
+    "GitPython",
 ]
 
 [project.optional-dependencies]
