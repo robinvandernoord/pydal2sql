@@ -119,16 +119,25 @@ def get_file_for_version(filename: str, version: str, prompt_description: str = 
 
 
 def extract_file_version_and_path(file_path_or_git_tag: Optional[str]) -> tuple[str, str | None]:
-    # todo: move to cli support
+    """
+
+    Examples:
+        myfile.py (implies @current)
+
+        myfile.py@latest
+        myfile.py@my-branch
+        myfile.py@b3f24091a9
+
+        @latest (implies no path, e.g. in case of ALTER to copy previously defined path)
+    """
     if not file_path_or_git_tag or file_path_or_git_tag == "-":
         return "stdin", "-"
 
-    if ":" in file_path_or_git_tag:
-        file_version, file_path = file_path_or_git_tag.split(":")
-        file_version = file_version.strip("@")
-    elif "@" in file_path_or_git_tag:
+    if file_path_or_git_tag.startswith("@"):
         file_version = file_path_or_git_tag.strip("@")
         file_path = None
+    elif "@" in file_path_or_git_tag:
+        file_path, file_version = file_path_or_git_tag.split("@")
     else:
         file_version = "latest"
         file_path = file_path_or_git_tag

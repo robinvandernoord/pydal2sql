@@ -6,18 +6,17 @@ from typing import Annotated, Optional
 
 import typer
 from rich import print
-from rich.prompt import Prompt
 from typer import Argument
 from typing_extensions import Never
 
 from .__about__ import __version__
 from .cli_support import (
+    extract_file_version_and_path,
     extract_file_versions_and_paths,
     find_git_root,
     get_absolute_path_info,
     get_file_for_version,
     handle_cli_create,
-    has_stdin_data,
 )
 from .typer_support import (
     DEFAULT_VERBOSITY,
@@ -90,31 +89,21 @@ def create(
         cat models.py | pydal2sql
         pydal2sql # output from stdin
     """
-    config = state.update_config(filename=filename, magic=magic, noop=noop, tables=tables)
+    git_root = find_git_root() or Path(os.getcwd())
 
-    load_file_mode = (filename := config.filename) and filename.endswith(".py")
+    config = state.update_config(magic=magic, noop=noop, tables=tables)
 
-    db_type = db_type.value if db_type else None
+    file_version, file_path = extract_file_version_and_path(filename or config.filename)
+    file_exists, file_absolute_path = get_absolute_path_info(file_path, file_version, git_root)
 
-    if not (has_stdin_data() or load_file_mode):
-        if not db_type:
-            db_type = Prompt.ask("Which database type do you want to use?", choices=["sqlite", "postgres", "mysql"])
+    if not file_exists:
+        raise ValueError(f"Source file {filename} could not be found.")
 
-        print("Please paste your define tables code below and press ctrl-D when finished.", file=sys.stderr)
-
-        # else: data from stdin
-        # py code or cli args should define settings.
-
-    if load_file_mode and filename:
-        db_type = db_type
-        text = Path(filename).read_text()
-    else:
-        text = sys.stdin.read()
-        print("---", file=sys.stderr)
+    text = get_file_for_version(file_absolute_path, file_version, prompt_description="table definition")
 
     handle_cli_create(
         text,
-        db_type,
+        db_type=db_type.value if db_type else None,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
@@ -131,6 +120,14 @@ def alter(
 ) -> None:
     """
     Todo: docs
+
+    Examples:
+        > pydal2sql alter @b3f24091a9201d6 examples/magic.py
+        compare magic.py at commit b3f... to current (= as in workdir).
+
+        > pydal2sql alter examples/magic.py@@b3f24091a9201d6 examples/magic_after_rename.py@latest
+        compare magic.py (which was renamed to magic_after_rename.py),
+            at a specific commit to the latest version in git (ignore workdir version).
     """
     git_root = find_git_root() or Path(os.getcwd())
 
