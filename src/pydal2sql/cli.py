@@ -128,6 +128,12 @@ def alter(
         > pydal2sql alter examples/magic.py@@b3f24091a9201d6 examples/magic_after_rename.py@latest
         compare magic.py (which was renamed to magic_after_rename.py),
             at a specific commit to the latest version in git (ignore workdir version).
+
+    Todo:
+        alter myfile.py # only one arg
+        # = alter myfile.py@latest myfile.py@current
+        # != alter myfile.py - # with - for cli
+        # != alter - myfile.py
     """
     git_root = find_git_root() or Path(os.getcwd())
 
@@ -164,6 +170,21 @@ def alter(
 
     print(len(code_before), len(code_after), db_type)
 
+
+"""
+def pin:
+pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502  # -> default pin created
+pydal2sql alter myfile.py # should compare between pin/@latest and @current # replaces @current for Before, not for After in case of ALTER.
+pydal2sql pin --remove # -> default pin removed
+
+pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --name my_custom_name # -> pin '@my_custom_name' created
+pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe503 --name my_custom_name #-> pin '@my_custom_name' overwritten
+pydal2sql create myfile.py@my_custom_name
+pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --remove -> pin '@my_custom_name' removed
+
+pydal2sql pins
+# lists hash with name
+"""
 
 def show_config_callback() -> Never:
     """
