@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+    "su6", # bare without any checkers
     "rich",
     "pydal",
     "typer",

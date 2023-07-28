@@ -1,3 +1,4 @@
+import os
 import sys
 import typing
 from pathlib import Path
@@ -10,12 +11,21 @@ from typer import Argument
 from typing_extensions import Never
 
 from .__about__ import __version__
-from .cli_support import handle_cli, has_stdin_data, get_file_for_commit
+from .cli_support import (
+    extract_file_versions_and_paths,
+    find_git_root,
+    get_absolute_path_info,
+    get_file_for_version,
+    handle_cli_create,
+    has_stdin_data,
+)
 from .typer_support import (
     DEFAULT_VERBOSITY,
+    IS_DEBUG,
     ApplicationState,
     Verbosity,
     create_enum_from_literal,
+    with_exit_code,
 )
 from .types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
 
@@ -33,7 +43,9 @@ OptionalOption = Annotated[Optional[T], typer.Option()]
 
 ### end typing stuff, start app:
 
-app = typer.Typer()
+app = typer.Typer(
+    no_args_is_help=True,
+)
 state = ApplicationState()
 
 
@@ -59,6 +71,7 @@ def danger(*args: str) -> None:
 
 
 @app.command()
+@with_exit_code(hide_tb=not IS_DEBUG)
 def create(
     filename: OptionalArgument[str] = None,
     tables: Annotated[
@@ -99,7 +112,7 @@ def create(
         text = sys.stdin.read()
         print("---", file=sys.stderr)
 
-    handle_cli(
+    handle_cli_create(
         text,
         db_type,
         tables=config.tables,
@@ -110,28 +123,50 @@ def create(
 
 
 @app.command()
+@with_exit_code(hide_tb=not IS_DEBUG)
 def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
     db_type: DB_Types = None,
 ) -> None:
-    """"
-    Todo:
-        - docs
-        - git
-        - etc.
     """
-    print(filename_before)
-    print(filename_after)
-    print(db_type.value if db_type else None)
+    Todo: docs
+    """
+    git_root = find_git_root() or Path(os.getcwd())
 
+    before, after = extract_file_versions_and_paths(filename_before, filename_after)
 
-@app.command()
-def debug(filename: str):
-    print(
-        get_file_for_commit(filename, ),
-        get_file_for_commit(filename, "6f46d835b2a53cef1d6926b5ccbf9a723ad57197")
+    version_before, filename_before = before
+    version_after, filename_after = after
+
+    # either ./file exists or /file exists (seen from git root):
+
+    before_exists, before_absolute_path = get_absolute_path_info(filename_before, version_before, git_root)
+    after_exists, after_absolute_path = get_absolute_path_info(filename_after, version_after, git_root)
+
+    if not (before_exists and after_exists):
+        message = ""
+        message += "" if before_exists else f"Path {filename_before} does not exist! "
+        message += "" if after_exists else f"Path {filename_after} does not exist!"
+        raise ValueError(message)
+
+    code_before = get_file_for_version(
+        before_absolute_path, version_before, prompt_description="current table definition"
     )
+    code_after = get_file_for_version(after_absolute_path, version_after, prompt_description="desired table definition")
+
+    if not (code_before and code_after):
+        message = ""
+        message += "" if code_before else "Before code is empty (Maybe try `pydal2sql create`)! "
+        message += "" if code_after else "After code is empty! "
+        raise ValueError(message)
+
+    if code_before == code_after:
+        print("[red]Both contain the same code![/red]", file=sys.stderr)
+        return
+
+    print(len(code_before), len(code_after), db_type)
+
 
 def show_config_callback() -> Never:
     """
@@ -145,7 +180,7 @@ def version_callback() -> Never:
     """
     --version requested!
     """
-    print(f"su6 Version: {__version__}")
+    print(f"pydal2sql Version: {__version__}")
 
     raise typer.Exit(0)
 

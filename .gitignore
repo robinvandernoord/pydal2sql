@@ -7,3 +7,4 @@ dist/
 build/
 .coverage
 coverage.json
+.env

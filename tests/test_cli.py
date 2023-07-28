@@ -1,6 +1,6 @@
 import pytest
 
-from src.pydal2sql.cli import handle_cli, CliConfig
+from src.pydal2sql.cli import handle_cli_create, CliConfig
 from src.pydal2sql.magic import find_missing_variables
 
 
@@ -22,7 +22,7 @@ def test_cli(capsys):
     """
 
     with pytest.raises(ValueError):
-        handle_cli(
+        handle_cli_create(
             code,
             None,  # <- not yet set in code so error
             None,
@@ -30,7 +30,7 @@ def test_cli(capsys):
 
     code += 'db_type = "sqlite";'
 
-    handle_cli(
+    handle_cli_create(
         code,
         None,  # <- set in code so no error
         None,
@@ -42,7 +42,7 @@ def test_cli(capsys):
 
     code += 'db_type = "mysql";'
 
-    handle_cli(
+    handle_cli_create(
         code,
         None,  # <-  set in code so no error
         None,
@@ -54,7 +54,7 @@ def test_cli(capsys):
     assert "db.define_table(" not in captured.out
     assert "db.define_table(" not in captured.err
 
-    handle_cli(
+    handle_cli_create(
         code,
         None,  # <-  set in code so no error
         None,
@@ -86,7 +86,7 @@ def test_cli_guess_sqlite(capsys):
        )
        """
 
-    handle_cli(
+    handle_cli_create(
         code,
         None,  # <-  set in code so no error
         None
@@ -118,12 +118,12 @@ def test_magic(capsys):
     db_type = 'pymysql'
     """
 
-    handle_cli(code_with_imports)
+    handle_cli_create(code_with_imports)
     captured = capsys.readouterr()
 
     assert "Your code is missing some variables: {'floor'}" in captured.err
 
-    handle_cli(code_with_imports, magic=True, verbose=True)
+    handle_cli_create(code_with_imports, magic=True, verbose=True)
     captured = capsys.readouterr()
 
     assert 'CREATE TABLE' in captured.out
@@ -135,7 +135,7 @@ def test_magic(capsys):
     """
 
     with pytest.raises(SyntaxError):
-        handle_cli(with_syntax_error, magic=True)
+        handle_cli_create(with_syntax_error, magic=True)
     with pytest.raises(SyntaxError):
         find_missing_variables(with_syntax_error)
 
@@ -145,7 +145,7 @@ def test_magic(capsys):
     """
 
     # unfixable so magic = False here
-    handle_cli(with_del, magic=False)
+    handle_cli_create(with_del, magic=False)
     captured = capsys.readouterr()
 
     assert "{'a'}" in captured.err

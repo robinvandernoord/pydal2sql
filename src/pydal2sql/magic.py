@@ -20,7 +20,7 @@ def traverse_ast(node: ast.AST, variable_collector: typing.Callable[[ast.AST], N
         traverse_ast(child, variable_collector)
 
 
-def find_missing_variables(code_str: str) -> set[str]:
+def find_variables(code_str: str) -> tuple[set[str], set[str]]:
     """
     Look through the source code in code_str and try to detect using ast parsing which variables are undefined.
     """
@@ -79,24 +79,17 @@ def find_missing_variables(code_str: str) -> set[str]:
         collect_imports(node)
         collect_loop_variables(node)
 
-    # ChatGPT produced (4.20s for 10k):
-    # traverse_ast(tree, collect_variables)
-    # traverse_ast(tree, collect_definitions)
-    # traverse_ast(tree, collect_imported_names)
-    # traverse_ast(tree, collect_imports)
-    # traverse_ast(tree, collect_loop_variables)
-
     # manually rewritten (2.19s for 10k):
     traverse_ast(tree, collect_everything)
-    return {
-        var
-        for var in used_variables
-        if var not in defined_variables
-        and var not in imported_modules
-        and var not in loop_variables
-        and var not in imported_names
-        and var not in BUILTINS
-    }
+
+    all_variables = defined_variables | imported_modules | loop_variables | imported_names | BUILTINS
+
+    return used_variables, all_variables
+
+
+def find_missing_variables(code: str) -> set[str]:
+    used_variables, defined_variables = find_variables(code)
+    return {var for var in used_variables if var not in defined_variables}
 
 
 # if __name__ == "__main__":
