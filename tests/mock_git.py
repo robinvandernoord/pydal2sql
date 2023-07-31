@@ -5,7 +5,7 @@ from pathlib import Path
 from contextlib_chdir import chdir
 from plumbum import local
 
-from src.pydal2sql.helpers import TempdirOrExistingDir
+from pydal2sql_core.helpers import TempdirOrExistingDir
 
 
 @contextmanager
@@ -15,6 +15,8 @@ def mock_git():
     assert pytest_examples.exists()
     with TempdirOrExistingDir() as cwd, chdir(cwd):
         git("init")
+        git("config", "--local", "user.email", "bot@su6.nl")
+        git("config", "--local", "user.name", "PyTest")
         git("config", "--local", "commit.gpgsign", "false")
 
         shutil.copy(pytest_examples / "magic_pre.py", "magic.py")

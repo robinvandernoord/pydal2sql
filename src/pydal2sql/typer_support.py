@@ -20,6 +20,7 @@ import tomli
 import typer
 from black.files import find_project_root
 from configuraptor.helpers import find_pyproject_toml
+from pydal2sql_core.types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
 from su6.core import (
     EXIT_CODE_ERROR,
     EXIT_CODE_SUCCESS,
@@ -28,8 +29,6 @@ from su6.core import (
     T_Outer_Wrapper,
 )
 from typing_extensions import Never
-
-from .types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
 
 T_Literal = typing._SpecialForm
 
@@ -185,7 +184,7 @@ class Config(AbstractConfig):
     noop: bool = False
     tables: Optional[list[str]] = None
     pyproject: typing.Optional[str] = None
-    function: str = 'define_tables'
+    function: str = "define_tables"
 
 
 MaybeConfig = Optional[Config]

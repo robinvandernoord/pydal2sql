@@ -1,7 +1,7 @@
 [project]
 name = "pydal2sql"
 dynamic = ["version"]
-description = "Convert pydal define_tables to SQL using pydal's CREATE TABLE logic"
+description = "Convert pydal define_tables to SQL using pydal's CREATE TABLE logic."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+    "pydal2sql-core",
     "su6", # bare without any checkers
     "rich",
     "pydal",

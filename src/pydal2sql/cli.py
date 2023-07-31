@@ -6,12 +6,7 @@ from typing import Annotated, Optional
 
 import typer
 from configuraptor import Singleton
-from rich import print
-from typer import Argument
-from typing_extensions import Never
-
-from .__about__ import __version__
-from .cli_support import (
+from pydal2sql_core.cli_support import (
     extract_file_version_and_path,
     extract_file_versions_and_paths,
     find_git_root,
@@ -19,6 +14,11 @@ from .cli_support import (
     get_file_for_version,
     handle_cli,
 )
+from rich import print
+from typer import Argument
+from typing_extensions import Never
+
+from .__about__ import __version__
 from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
@@ -91,7 +91,9 @@ def create(
     """
     git_root = find_git_root() or Path(os.getcwd())
 
-    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function)
+    config = state.update_config(
+        magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
+    )
 
     file_version, file_path = extract_file_version_and_path(
         filename, default_version="current" if filename else "stdin"

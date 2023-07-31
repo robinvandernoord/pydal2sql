@@ -15,6 +15,8 @@
 statements. It supports different SQL dialects including SQLite, Postgres and MySQL. The tool generates
 both `CREATE TABLE` and `ALTER TABLE` SQL statements. It does this using pydal's own logic.
 
+Note: this package is only a Typer-based CLI front-end. The actual logic lives at [`robinvandernoord/pydal2sql-core`](https://github.com/robinvandernoord/pydal2sql-core)!
+
 ## Table of Contents
 
 - [Installation](#installation)
