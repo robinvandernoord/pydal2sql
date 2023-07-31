@@ -3,7 +3,7 @@ from pydal import Field
 
 from src.pydal2sql import generate_sql
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     db = pydal.DAL(None, migrate=False)  # <- without running database or with a different type of database
 
     old = db.define_table(
@@ -27,15 +27,10 @@ if __name__ == '__main__':
             notnull=True,
         ),
         Field("birthday", "datetime"),  # replaced age with birthday
-
         # removed some properties
         Field("nicknames", "string"),  # your nickname must now be a varchar instead of text.
-
         # Field("obj", "json"),
-
         redefine=True,
     )
 
-    print(
-        generate_sql(old, new, db_type="sqlite")
-    )
+    print(generate_sql(old, new, db_type="sqlite"))

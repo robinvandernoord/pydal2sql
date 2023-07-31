@@ -21,8 +21,11 @@ from git.repo import Repo
 from .helpers import flatten
 from .magic import (
     find_defined_variables,
+    find_local_imports,
     find_missing_variables,
     generate_magic_code,
+    remove_import,
+    remove_local_imports,
     remove_specific_variables,
 )
 
@@ -227,7 +230,16 @@ def ensure_no_migrate_on_real_db(
             f"{message} Please remove this or use --magic to prevent performing actual migrations on your database."
         )
 
+    if find_local_imports(code):
+        if fix:
+            code = remove_local_imports(code)
+        else:
+            raise ValueError("Local imports are used in this file! Please remove these or use --magic.")
+
     return code
+
+
+MAX_RETRIES = 20
 
 
 def handle_cli(
@@ -305,32 +317,45 @@ def handle_cli(
         rich.print(generated_code, file=sys.stderr)
 
     if not noop:
-        try:
-            exec(generated_code)  # nosec: B102
-        except NameError:
-            # something is missing!
-            missing_vars = find_missing_variables(generated_code)
-            if not magic:
-                rich.print(
-                    f"Your code is missing some variables: {missing_vars}. Add these or try --magic", file=sys.stderr
+        err: typing.Optional[Exception] = None
+        retry_counter = MAX_RETRIES
+        while retry_counter > 0:
+            try:
+                exec(generated_code)  # nosec: B102
+                return True  # success!
+            except NameError as e:
+                err = e
+                # something is missing!
+                missing_vars = find_missing_variables(generated_code)
+                if not magic:
+                    rich.print(
+                        f"Your code is missing some variables: {missing_vars}. Add these or try --magic",
+                        file=sys.stderr,
+                    )
+                    return False
+
+                extra_code = generate_magic_code(missing_vars)
+
+                generated_code = to_execute.substitute(
+                    {
+                        "tables": flatten(tables or []),
+                        "db_type": db_type or "",
+                        "extra": extra_code,
+                        "code_before": textwrap.dedent(code_before),
+                        "code_after": textwrap.dedent(code_after),
+                    }
                 )
-                return False
 
-            extra_code = generate_magic_code(missing_vars)
+                if verbose:
+                    rich.print(generated_code, file=sys.stderr)
+            except ImportError as e:
+                err = e
+                # if we catch an ImportError, we try to remove the import and retry
+                generated_code = remove_import(generated_code, e.name)
+                retry_counter -= 1
 
-            generated_code = to_execute.substitute(
-                {
-                    "tables": flatten(tables or []),
-                    "db_type": db_type or "",
-                    "extra": extra_code,
-                    "code_before": textwrap.dedent(code_before),
-                    "code_after": textwrap.dedent(code_after),
-                }
-            )
-
-            if verbose:
-                rich.print(generated_code, file=sys.stderr)
-
-            exec(generated_code)  # nosec: B102
+        if retry_counter < 1:  # pragma: no cover
+            rich.print(f"[red]Code could not be fixed automagically![/red]. Error: {err or '?'}", file=sys.stderr)
+            return False
 
     return True

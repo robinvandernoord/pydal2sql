@@ -75,6 +75,43 @@ def remove_specific_variables(code: str, to_remove: typing.Iterable[str] = ("db"
     return ast.unparse(new_tree)
 
 
+def find_local_imports(code: str) -> bool:
+    class FindLocalImports(ast.NodeVisitor):
+        def visit_ImportFrom(self, node: ast.ImportFrom) -> bool:
+            if node.level > 0:  # This means it's a relative import
+                return True
+            return False
+
+    tree = ast.parse(code)
+    visitor = FindLocalImports()
+    return any(visitor.visit(node) for node in ast.walk(tree))
+
+
+def remove_import(code: str, module_name: typing.Optional[str]) -> str:
+    tree = ast.parse(code)
+    new_body = [
+        node
+        for node in tree.body
+        if not isinstance(node, (ast.Import, ast.ImportFrom))
+        or (not isinstance(node, ast.Import) or all(alias.name != module_name for alias in node.names))
+        and (not isinstance(node, ast.ImportFrom) or node.module != module_name)
+    ]
+    tree.body = new_body
+    return ast.unparse(tree)
+
+
+def remove_local_imports(code: str) -> str:
+    class RemoveLocalImports(ast.NodeTransformer):
+        def visit_ImportFrom(self, node: ast.ImportFrom) -> typing.Optional[ast.ImportFrom]:
+            if node.level > 0:  # This means it's a relative import
+                return None  # Remove the node
+            return node  # Keep the node
+
+    tree = ast.parse(code)
+    tree = RemoveLocalImports().visit(tree)
+    return ast.unparse(tree)
+
+
 def find_variables(code_str: str) -> tuple[set[str], set[str]]:
     """
     Look through the source code in code_str and try to detect using ast parsing which variables are undefined.

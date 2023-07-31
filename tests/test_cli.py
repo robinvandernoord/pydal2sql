@@ -3,6 +3,7 @@ Todo: test with Typer
 """
 from pathlib import Path
 
+from contextlib_chdir import chdir
 from typer.testing import CliRunner
 
 from src.pydal2sql.cli import app
@@ -33,17 +34,18 @@ def test_cli_create():
         assert not result.stderr
         assert "CREATE" in result.stdout
 
-        result = runner.invoke(app, ["--verbosity", "3", "create", "magic.py@latest", '--magic'])
+        result = runner.invoke(app, ["--verbosity", "3", "create", "magic.py@latest", "--magic"])
         assert result.exit_code == 0
         assert "generate_sql(" in result.stderr
         assert "empty = Empty()" in result.stderr
         assert "CREATE" in result.stdout
 
-        result = runner.invoke(app, ["create", "magic.py@latest", '--noop'])
+        result = runner.invoke(app, ["create", "magic.py@latest", "--noop"])
         assert result.exit_code == 0
         assert not result.stdout
         assert "empty = Empty()" not in result.stderr
         assert "generate_sql(" in result.stderr
+
 
 def test_cli_alter():
     with mock_git():
@@ -64,11 +66,10 @@ def test_cli_alter():
         assert "contain the same code" in result.stderr
 
         result = runner.invoke(app, ["alter", "magic.py", "--magic"])
-        print('++ stdout', result.stdout)
-        print('++ stderr', result.stderr)
+        print("++ stdout", result.stdout)
+        print("++ stderr", result.stderr)
         assert result.exit_code == 0
         assert result.stdout
-
 
 
 def test_cli_version():
@@ -83,161 +84,40 @@ def test_cli_config():
     assert "ApplicationState(" in result.stdout
     assert "verbosity=<Verbosity.debug: '4'>" in result.stdout
 
-# import pytest
+
+def test_with_import():
+    with chdir("./pytest_examples"):
+        result = runner.invoke(app, ["create", "magic_with_import.py", "--no-magic"])
+        assert result.exit_code == 1
+        assert "Local imports are used in this file" in result.stderr
+
+        result = runner.invoke(app, ["create", "magic_with_import.py", "--magic"])
+
+        assert result.exit_code == 0
+
+        assert not result.stderr
+        assert "CREATE TABLE empty" in result.stdout
+
+
+# def test_with_function():
+#     with chdir("./pytest_examples"):
+#         result = runner.invoke(app, ["create", "magic_with_function.py", "--magic", "--function", "define_tables"])
+#         assert result.exit_code == 0
 #
-# from src.pydal2sql.cli import handle_cli_create, CliConfig
-# from src.pydal2sql.magic import find_missing_variables
+#         assert not result.stderr
+#         assert "CREATE TABLE empty" in result.stdout
 #
-#
-# def test_cli(capsys):
-#     code = """
-#     db.define_table(
-#         "person",
-#         Field(
-#             "name",
-#             "string",
-#             notnull=True,
-#         ),
-#         Field("age", "integer", default=18),
-#         Field("float", "decimal(2,3)"),
-#         Field("nicknames", "list:string"),
-#         Field("obj", "json"),
-#     )
-#
-#     """
-#
-#     with pytest.raises(ValueError):
-#         handle_cli_create(
-#             code,
-#             None,  # <- not yet set in code so error
-#             None,
+#         result = runner.invoke(
+#             app,
+#             [
+#                 "create",
+#                 "magic_with_function.py",
+#                 "--magic",
+#                 "--function",
+#                 "define_tables_multiple_arguments(db, 'empty')",
+#             ],
 #         )
+#         assert result.exit_code == 0
 #
-#     code += 'db_type = "sqlite";'
-#
-#     handle_cli_create(
-#         code,
-#         None,  # <- set in code so no error
-#         None,
-#     )
-#     captured = capsys.readouterr()
-#
-#     assert "InnoDB" not in captured.out
-#     assert "CREATE TABLE" in captured.out
-#
-#     code += 'db_type = "mysql";'
-#
-#     handle_cli_create(
-#         code,
-#         None,  # <-  set in code so no error
-#         None,
-#     )
-#     captured = capsys.readouterr()
-#
-#     assert "CREATE TABLE" in captured.out
-#     assert "InnoDB" in captured.out
-#     assert "db.define_table(" not in captured.out
-#     assert "db.define_table(" not in captured.err
-#
-#     handle_cli_create(
-#         code,
-#         None,  # <-  set in code so no error
-#         None,
-#         verbose=True,
-#         noop=True,
-#     )
-#     captured = capsys.readouterr()
-#
-#     assert "CREATE TABLE" not in captured.out
-#     assert "CREATE TABLE" not in captured.err
-#     assert "db.define_table(" in captured.err
-#
-#
-# def test_cli_guess_sqlite(capsys):
-#     code = """
-#        db = DAL('sqlite://:memory:', migrate=False)
-#
-#        db.define_table(
-#            "person",
-#            Field(
-#                "name",
-#                "string",
-#                notnull=True,
-#            ),
-#            Field("age", "integer", default=18),
-#            Field("float", "decimal(2,3)"),
-#            Field("nicknames", "list:string"),
-#            Field("obj", "json"),
-#        )
-#        """
-#
-#     handle_cli_create(
-#         code,
-#         None,  # <-  set in code so no error
-#         None
-#     )
-#     captured = capsys.readouterr()
-#
-#     print(captured.err)
-#
-#     assert "CREATE TABLE" in captured.out
-#
-#
-# def test_magic(capsys):
-#     code_with_imports = """
-#     # 🪄 ✨
-#     import math
-#     from math import ceil
-#     from typing import *
-#
-#     # floor should be unkown
-#
-#     numbers: Iterable = [1,2,3]
-#
-#     math.ceil(max(numbers))
-#     ceil(max(numbers))
-#     floor(max(numbers))
-#
-#     db.define_table('empty')
-#
-#     db_type = 'pymysql'
-#     """
-#
-#     handle_cli_create(code_with_imports)
-#     captured = capsys.readouterr()
-#
-#     assert "Your code is missing some variables: {'floor'}" in captured.err
-#
-#     handle_cli_create(code_with_imports, magic=True, verbose=True)
-#     captured = capsys.readouterr()
-#
-#     assert 'CREATE TABLE' in captured.out
-#     assert "Empty()" in captured.err
-#
-#     with_syntax_error = """
-#     if true:
-#     print('bye'
-#     """
-#
-#     with pytest.raises(SyntaxError):
-#         handle_cli_create(with_syntax_error, magic=True)
-#     with pytest.raises(SyntaxError):
-#         find_missing_variables(with_syntax_error)
-#
-#     with_del = """
-#     del a
-#     print(a)
-#     """
-#
-#     # unfixable so magic = False here
-#     handle_cli_create(with_del, magic=False)
-#     captured = capsys.readouterr()
-#
-#     assert "{'a'}" in captured.err
-#
-#
-# def test_config():
-#     config = CliConfig.load()
-#
-#     assert 'CliConfig' in repr(config)  # version with colors
-#     assert 'CliConfig(' in str(config)  # text-only version
+#         assert not result.stderr
+#         assert "CREATE TABLE empty" in result.stdout

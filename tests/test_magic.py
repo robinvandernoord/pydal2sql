@@ -1,6 +1,10 @@
 import textwrap
 
-from src.pydal2sql.magic import find_missing_variables, generate_magic_code, remove_specific_variables
+from src.pydal2sql.magic import (
+    find_missing_variables,
+    generate_magic_code,
+    remove_specific_variables,
+)
 
 
 def test_find_missing():
@@ -44,17 +48,20 @@ def test_fix_missing():
     assert "empty = Empty()" in code
     assert "bla = empty" in code
 
+
 def test_remove_specific_variables():
-    code = textwrap.dedent("""
+    code = textwrap.dedent(
+        """
     db = 1
     def database():
         return True
     
     my_database = 'exists'
     print('hi')
-    """)
+    """
+    )
     new_code = remove_specific_variables(code)
     assert "print('hi')" in new_code
-    assert 'db' not in new_code
-    assert 'def database' not in new_code
-    assert 'my_database' in new_code
+    assert "db" not in new_code
+    assert "def database" not in new_code
+    assert "my_database" in new_code

@@ -1,14 +1,8 @@
-
-my_method = SomeClass()['first']
+my_method = SomeClass()["first"]
 
 db.define_table(
     "person",
-    Field(
-        "name",
-        "text",
-        notnull=True,
-        default=my_method.new_uuid()
-    ),
+    Field("name", "text", notnull=True, default=my_method.new_uuid()),
     Field("birthday", "datetime", default=datetime.datetime.utcnow()),
     Field("location", "string"),
 )

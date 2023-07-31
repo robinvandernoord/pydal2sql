@@ -7,7 +7,11 @@ from pathlib import Path
 import pytest
 
 from src.pydal2sql.cli import DB_Types
-from src.pydal2sql.typer_support import create_enum_from_literal, Verbosity, get_pydal2sql_config
+from src.pydal2sql.typer_support import (
+    Verbosity,
+    create_enum_from_literal,
+    get_pydal2sql_config,
+)
 
 
 def test_enum_typer():
