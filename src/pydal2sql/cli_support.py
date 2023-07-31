@@ -26,7 +26,7 @@ from .magic import (
     generate_magic_code,
     remove_import,
     remove_local_imports,
-    remove_specific_variables,
+    remove_specific_variables, find_function_to_call, add_function_call,
 )
 
 
@@ -250,6 +250,7 @@ def handle_cli(
     verbose: Optional[bool] = False,
     noop: Optional[bool] = False,
     magic: Optional[bool] = False,
+    function_name: Optional[str] = 'define_tables',
 ) -> bool:
     """
     Handle user input.
@@ -283,10 +284,7 @@ def handle_cli(
             tables = set(db_old._tables + db_new._tables)
 
         if not tables:
-            print("No tables found!", file=sys.stderr)
-            print("Please use `db.define_table` or `database.define_table`, "
-            "or if you really need to use an alias like my_db.define_tables, "
-            "add `my_db = db` at the top of the file or pass `--db-name mydb`.", file=sys.stderr)
+            raise ValueError('no-tables-found')
 
 
         for table in tables:
@@ -320,9 +318,36 @@ def handle_cli(
         err: typing.Optional[Exception] = None
         retry_counter = MAX_RETRIES
         while retry_counter > 0:
+            retry_counter -= 1
             try:
                 exec(generated_code)  # nosec: B102
                 return True  # success!
+            except ValueError as e:
+                err = e
+
+                if str(e) != 'no-tables-found':
+                    raise e
+
+                define_tables = find_function_to_call(generated_code, function_name)
+
+                # if define_tables function is found, add call to it at end of code
+                if define_tables is not None:
+                    print(define_tables)
+                    generated_code = add_function_call(generated_code, function_name)
+                    print(generated_code, function_name)
+                    continue
+
+                # else: no define_tables or other method to use found.
+
+                print(f"No tables found in the top-level or {function_name} function!", file=sys.stderr)
+                print("Please use `db.define_table` or `database.define_table`, "
+                      "or if you really need to use an alias like my_db.define_tables, "
+                      "add `my_db = db` at the top of the file or pass `--db-name mydb`.", file=sys.stderr)
+                print(f"You can also specify a --function to use something else than {function_name}.",
+                      file=sys.stderr)
+
+                return False
+
             except NameError as e:
                 err = e
                 # something is missing!
@@ -352,7 +377,6 @@ def handle_cli(
                 err = e
                 # if we catch an ImportError, we try to remove the import and retry
                 generated_code = remove_import(generated_code, e.name)
-                retry_counter -= 1
 
         if retry_counter < 1:  # pragma: no cover
             rich.print(f"[red]Code could not be fixed automagically![/red]. Error: {err or '?'}", file=sys.stderr)

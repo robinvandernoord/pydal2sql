@@ -185,6 +185,7 @@ class Config(AbstractConfig):
     noop: bool = False
     tables: Optional[list[str]] = None
     pyproject: typing.Optional[str] = None
+    function: str = 'define_tables'
 
 
 MaybeConfig = Optional[Config]

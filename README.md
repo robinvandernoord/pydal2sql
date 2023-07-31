@@ -126,11 +126,13 @@ the table definition (i.e. only used at runtime, not for the schema definition),
 
 This flag will replace all missing variables with a special `Empty` class, which does nothing but
 prevent `NameError`, `AttributeError` and `TypeError`s.   
+
+`Magic` will also remove local imports and imports that could not be found.
+
 This is of course not production-safe, so it shouldn't be used anywhere else.
 
 #### TODO:
 The following patterns are currently not supported:
-- in `models.py`: from `.common import db`
 - `def define_tables(db): ...`
 
 ## As a Python Library

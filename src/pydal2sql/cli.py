@@ -79,6 +79,7 @@ def create(
     db_type: DBType_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
+    function: Optional[str] = None,
 ) -> bool:
     """
     todo: docs
@@ -90,7 +91,7 @@ def create(
     """
     git_root = find_git_root() or Path(os.getcwd())
 
-    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None)
+    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function)
 
     file_version, file_path = extract_file_version_and_path(
         filename, default_version="current" if filename else "stdin"
@@ -110,6 +111,7 @@ def create(
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
         magic=config.magic,
+        function_name=config.function,
     )
 
 

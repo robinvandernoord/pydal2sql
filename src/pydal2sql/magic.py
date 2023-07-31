@@ -2,8 +2,10 @@
 This file has methods to guess which variables are unknown and to potentially (monkey-patch) fix this.
 """
 
+
 import ast
 import builtins
+import contextlib
 import importlib
 import textwrap
 import typing
@@ -93,8 +95,8 @@ def remove_import(code: str, module_name: typing.Optional[str]) -> str:
         node
         for node in tree.body
         if not isinstance(node, (ast.Import, ast.ImportFrom))
-        or (not isinstance(node, ast.Import) or all(alias.name != module_name for alias in node.names))
-        and (not isinstance(node, ast.ImportFrom) or node.module != module_name)
+           or (not isinstance(node, ast.Import) or all(alias.name != module_name for alias in node.names))
+           and (not isinstance(node, ast.ImportFrom) or node.module != module_name)
     ]
     tree.body = new_body
     return ast.unparse(tree)
@@ -111,6 +113,87 @@ def remove_local_imports(code: str) -> str:
     tree = RemoveLocalImports().visit(tree)
     return ast.unparse(tree)
 
+
+# def find_function_to_call(code: str, target: str) -> typing.Optional[ast.FunctionDef]:
+#     tree = ast.parse(code)
+#     for node in ast.walk(tree):
+#         if isinstance(node, ast.FunctionDef) and node.name == target:
+#             return node
+
+def find_function_to_call(code, function_call_hint):
+    function_name = function_call_hint.split('(')[0]  # Extract function name from hint
+    tree = ast.parse(code)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == function_name:
+            return function_name
+    return None
+
+# def add_function_call(code: str, function_name: str) -> str:
+#     tree = ast.parse(code)
+#     # Create a function call node
+#     func_call = ast.Expr(
+#         value=ast.Call(
+#             func=ast.Name(id=function_name, ctx=ast.Load()),
+#             args=[ast.Name(id='db', ctx=ast.Load())],
+#             keywords=[]
+#         )
+#     )
+#
+#     # Insert the function call right after the function definition
+#     for i, node in enumerate(tree.body):
+#         if isinstance(node, ast.FunctionDef) and node.name == function_name:
+#             tree.body.insert(i + 1, func_call)
+#             break
+#
+#     return ast.unparse(tree)
+
+# def extract_function_details(function_call):
+#     function_name = function_call.split('(')[0]  # Extract function name from hint
+#     if '(' in function_call:
+#         try:
+#             tree = ast.parse(function_call)
+#             for node in ast.walk(tree):
+#                 if isinstance(node, ast.Call):
+#                     return node.func.id, [ast.unparse(arg) for arg in node.args]
+#         except SyntaxError:
+#             pass
+#     return function_name, []
+
+def extract_function_details(function_call):
+    function_name = function_call.split('(')[0]  # Extract function name from hint
+    if '(' not in function_call:
+        return function_name, ['db']
+
+    with contextlib.suppress(SyntaxError):
+        tree = ast.parse(function_call)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                # If no arguments are given, add 'db' automatically
+                if len(node.args) == 0:
+                    return function_name, ['db']
+                else:
+                    return node.func.id, [ast.unparse(arg) for arg in node.args]
+    return None, []
+
+def add_function_call(code, function_call):
+    function_name, args = extract_function_details(function_call)
+
+    tree = ast.parse(code)
+    # Create a function call node
+    new_call = ast.Call(
+        func=ast.Name(id=function_name, ctx=ast.Load()),
+        args=[ast.parse(arg).body[0].value for arg in args] if args else [],
+        keywords=[]
+    )
+    func_call = ast.Expr(value=new_call)
+
+    # Insert the function call right after the function definition
+    for i, node in enumerate(tree.body):
+        if isinstance(node, ast.FunctionDef) and node.name == function_name:
+            tree.body.insert(i+1, func_call)
+            break
+
+    return ast.unparse(tree)
 
 def find_variables(code_str: str) -> tuple[set[str], set[str]]:
     """

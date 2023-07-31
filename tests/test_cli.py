@@ -96,28 +96,28 @@ def test_with_import():
         assert result.exit_code == 0
 
         assert not result.stderr
+        assert "CREATE TABLE something" in result.stdout
+
+
+def test_with_function():
+    with chdir("./pytest_examples"):
+        # result = runner.invoke(app, ["create", "magic_with_function.py", "--magic", "--function", "define_tables"])
+        # assert result.exit_code == 0
+        #
+        # assert not result.stderr
+        # assert "CREATE TABLE empty" in result.stdout
+
+        result = runner.invoke(
+            app,
+            [
+                "create",
+                "magic_with_function.py",
+                "--magic",
+                "--function",
+                "define_tables_multiple_arguments(db, 'empty')",
+            ],
+        )
+        assert result.exit_code == 0
+
+        assert not result.stderr
         assert "CREATE TABLE empty" in result.stdout
-
-
-# def test_with_function():
-#     with chdir("./pytest_examples"):
-#         result = runner.invoke(app, ["create", "magic_with_function.py", "--magic", "--function", "define_tables"])
-#         assert result.exit_code == 0
-#
-#         assert not result.stderr
-#         assert "CREATE TABLE empty" in result.stdout
-#
-#         result = runner.invoke(
-#             app,
-#             [
-#                 "create",
-#                 "magic_with_function.py",
-#                 "--magic",
-#                 "--function",
-#                 "define_tables_multiple_arguments(db, 'empty')",
-#             ],
-#         )
-#         assert result.exit_code == 0
-#
-#         assert not result.stderr
-#         assert "CREATE TABLE empty" in result.stdout
