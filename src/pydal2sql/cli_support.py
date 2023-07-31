@@ -272,9 +272,9 @@ def handle_cli(
 
         if not tables:
             print("No tables found!", file=sys.stderr)
-            print("Please use `db.define_table` or `database.define_table`, \
-            or if you really need to use an alias like my_db.define_tables, \
-            add `my_db = db` at the top of the file or pass `--db-name mydb`.")
+            print("Please use `db.define_table` or `database.define_table`, "
+            "or if you really need to use an alias like my_db.define_tables, "
+            "add `my_db = db` at the top of the file or pass `--db-name mydb`.", file=sys.stderr)
 
 
         for table in tables:

@@ -29,6 +29,8 @@ from su6.core import (
 )
 from typing_extensions import Never
 
+from .types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
+
 T_Literal = typing._SpecialForm
 
 LiteralType = typing.TypeVar("LiteralType", str, typing.Union[str, str] | T_Literal)
@@ -166,6 +168,9 @@ class AbstractConfig(configuraptor.TypedConfig, configuraptor.Singleton):
     _strict = True
 
 
+DB_Types: typing.Any = create_enum_from_literal("DBType", SUPPORTED_DATABASE_TYPES_WITH_ALIASES)
+
+
 @dataclass
 class Config(AbstractConfig):
     """
@@ -175,7 +180,7 @@ class Config(AbstractConfig):
     """
 
     # settings go here
-    filename: Optional[str] = None
+    db_type: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = None
     magic: bool = False
     noop: bool = False
     tables: Optional[list[str]] = None

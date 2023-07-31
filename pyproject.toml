@@ -91,7 +91,7 @@ coverage = 100
 badge = true
 
 [tool.pydal2sql]
-db_type = "postgres"
+db-type = "postgres"
 magic = true
 tables = ["person"]
 

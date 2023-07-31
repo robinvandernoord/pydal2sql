@@ -23,15 +23,13 @@ from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
     ApplicationState,
+    DB_Types,
     Verbosity,
-    create_enum_from_literal,
     with_exit_code,
 )
-from .types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
 
 ## type fuckery:
-
-DB_Types: typing.Any = create_enum_from_literal("DBType", SUPPORTED_DATABASE_TYPES_WITH_ALIASES)
+DBType_Option = Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")]
 
 T = typing.TypeVar("T")
 
@@ -78,7 +76,7 @@ def create(
         Optional[list[str]],
         typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
     ] = None,
-    db_type: Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")] = None,
+    db_type: DBType_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
 ) -> bool:
@@ -92,9 +90,11 @@ def create(
     """
     git_root = find_git_root() or Path(os.getcwd())
 
-    config = state.update_config(magic=magic, noop=noop, tables=tables)
+    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None)
 
-    file_version, file_path = extract_file_version_and_path(filename or config.filename, default_version="current")
+    file_version, file_path = extract_file_version_and_path(
+        filename, default_version="current" if filename else "stdin"
+    )
     file_exists, file_absolute_path = get_absolute_path_info(file_path, file_version, git_root)
 
     if not file_exists:
@@ -105,7 +105,7 @@ def create(
     return handle_cli(
         "",
         text,
-        db_type=db_type.value if db_type else None,
+        db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
@@ -118,7 +118,7 @@ def create(
 def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
-    db_type: DB_Types = None,
+    db_type: DBType_Option = None,
     tables: Annotated[
         Optional[list[str]],
         typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
@@ -145,7 +145,7 @@ def alter(
     """
     git_root = find_git_root() or Path(os.getcwd())
 
-    config = state.update_config(magic=magic, noop=noop, tables=tables)
+    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None)
 
     before, after = extract_file_versions_and_paths(filename_before, filename_after)
 
@@ -181,12 +181,20 @@ def alter(
     return handle_cli(
         code_before,
         code_after,
-        db_type=db_type.value if db_type else None,
+        db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
         magic=config.magic,
     )
+
+
+"""
+todo:
+- db type in config
+- models.py with db import or define_tables method.
+- `public.` prefix
+"""
 
 
 """
