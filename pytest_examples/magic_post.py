@@ -1,6 +1,9 @@
 # this is the changed file
+from pydal import DAL
 
 my_method = SomeClass()['first']
+
+db = DAL("sqlite://my_real_database")
 
 db.define_table(
     "person",
@@ -16,4 +19,9 @@ db.define_table(
 
 db.define_table("empty")
 
-db_type = "sqlite"
+
+db.define_table("new_table",
+                Field("new_field")
+                )
+
+db_type = "psql"

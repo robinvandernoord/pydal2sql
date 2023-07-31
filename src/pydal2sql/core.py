@@ -170,6 +170,10 @@ def generate_alter_statement(
                 fake_migrate=True,
             )
 
+            if not sql_log.exists():
+                # no changes!
+                return ""
+
             with sql_log.open() as f:
                 for line in f:
                     if not line.startswith(("ALTER", "UPDATE")):

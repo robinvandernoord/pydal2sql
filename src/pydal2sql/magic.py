@@ -20,6 +20,61 @@ def traverse_ast(node: ast.AST, variable_collector: typing.Callable[[ast.AST], N
         traverse_ast(child, variable_collector)
 
 
+def find_defined_variables(code_str: str) -> set[str]:
+    tree: ast.Module = ast.parse(code_str)
+
+    variables: set[str] = set()
+
+    def collect_definitions(node: ast.AST) -> None:
+        if isinstance(node, ast.Assign):
+            node_targets = typing.cast(list[ast.Name], node.targets)
+
+            variables.update(target.id for target in node_targets)
+
+    traverse_ast(tree, collect_definitions)
+    return variables
+
+
+def remove_specific_variables(code: str, to_remove: typing.Iterable[str] = ("db", "database")) -> str:
+    # Parse the code into an Abstract Syntax Tree (AST) - by ChatGPT
+    tree = ast.parse(code)
+
+    # Function to check if a variable name is 'db' or 'database'
+    def should_remove(var_name: str) -> bool:
+        return var_name in to_remove
+
+    # Function to recursively traverse the AST and remove definitions of 'db' or 'database'
+    def remove_db_and_database_defs_rec(node: ast.AST) -> typing.Optional[ast.AST]:
+        if isinstance(node, ast.Assign):
+            # Check if the assignment targets contain 'db' or 'database'
+            new_targets = [
+                target for target in node.targets if not (isinstance(target, ast.Name) and should_remove(target.id))
+            ]
+            node.targets = new_targets
+
+        elif isinstance(node, (ast.FunctionDef, ast.ClassDef)) and should_remove(node.name):
+            # Check if function or class name is 'db' or 'database'
+            return None
+
+        for child_node in ast.iter_child_nodes(node):
+            # Recursively process child nodes
+            new_child_node = remove_db_and_database_defs_rec(child_node)
+            if new_child_node is None and hasattr(node, "body"):
+                # If the child node was removed, remove it from the parent's body
+                node.body.remove(child_node)
+
+        return node
+
+    # Traverse the AST to remove 'db' and 'database' definitions
+    new_tree = remove_db_and_database_defs_rec(tree)
+
+    if not new_tree:  # pragma: no cover
+        return ""
+
+    # Generate the modified code from the new AST
+    return ast.unparse(new_tree)
+
+
 def find_variables(code_str: str) -> tuple[set[str], set[str]]:
     """
     Look through the source code in code_str and try to detect using ast parsing which variables are undefined.

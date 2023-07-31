@@ -19,7 +19,12 @@ from git.objects.commit import Commit
 from git.repo import Repo
 
 from .helpers import flatten
-from .magic import find_missing_variables, generate_magic_code
+from .magic import (
+    find_defined_variables,
+    find_missing_variables,
+    generate_magic_code,
+    remove_specific_variables,
+)
 
 
 def has_stdin_data() -> bool:  # pragma: no cover
@@ -153,7 +158,12 @@ def extract_file_version_and_path(
 def extract_file_versions_and_paths(
     filename_before: Optional[str], filename_after: Optional[str]
 ) -> tuple[tuple[str, str | None], tuple[str, str | None]]:
-    version_before, filepath_before = extract_file_version_and_path(filename_before, default_version="latest")
+    version_before, filepath_before = extract_file_version_and_path(
+        filename_before,
+        default_version="current"
+        if filename_after and filename_before and filename_after != filename_before
+        else "latest",
+    )
     version_after, filepath_after = extract_file_version_and_path(filename_after, default_version="current")
 
     if not (filepath_before or filepath_after):
@@ -192,8 +202,37 @@ def get_absolute_path_info(filename: Optional[str], version: str, git_root: Opti
     return exists, absolute_path
 
 
-def handle_cli_create(
-    code: str,
+def ensure_no_migrate_on_real_db(
+    code: str, db_names: typing.Iterable[str] = ("db", "database"), fix: typing.Optional[bool] = False
+) -> str:
+    variables = find_defined_variables(code)
+
+    found_variables = set()
+
+    for db_name in db_names:
+        if db_name in variables:
+            if fix:
+                code = remove_specific_variables(code, db_names)
+            else:
+                found_variables.add(db_name)
+
+    if found_variables:
+        if len(found_variables) == 1:
+            var = next(iter(found_variables))
+            message = f"Variable {var} defined in code! "
+        else:  # pragma: no cover
+            var = ", ".join(found_variables)
+            message = f"Variables {var} defined in code! "
+        raise ValueError(
+            f"{message} Please remove this or use --magic to prevent performing actual migrations on your database."
+        )
+
+    return code
+
+
+def handle_cli(
+    code_before: str,
+    code_after: str,
     db_type: Optional[str] = None,
     tables: Optional[list[str] | list[list[str]]] = None,
     verbose: Optional[bool] = False,
@@ -203,6 +242,8 @@ def handle_cli_create(
     """
     Handle user input.
     """
+    # todo: prefix (e.g. public.)
+
     to_execute = string.Template(
         textwrap.dedent(
             """
@@ -219,19 +260,46 @@ def handle_cli_create(
 
         $extra
 
-        $code
+        $code_before
+
+        db_old = db
+        db_new = db = database = DAL(None, migrate=False)
+
+        $code_after
 
         if not tables:
-            tables = db._tables
+            tables = set(db_old._tables + db_new._tables)
+
+        if not tables:
+            print("No tables found!", file=sys.stderr)
+            print("Please use `db.define_table` or `database.define_table`, \
+            or if you really need to use an alias like my_db.define_tables, \
+            add `my_db = db` at the top of the file or pass `--db-name mydb`.")
+
 
         for table in tables:
-            print(generate_sql(db[table], db_type=db_type))
+            print('--', table)
+            if table in db_old and table in db_new:
+                print(generate_sql(db_old[table], db_new[table], db_type=db_type))
+            elif table in db_old:
+                print(f'DROP TABLE {table};')
+            else:
+                print(generate_sql(db_new[table], db_type=db_type))
     """
         )
     )
 
+    code_before = ensure_no_migrate_on_real_db(code_before, fix=magic)
+    code_after = ensure_no_migrate_on_real_db(code_after, fix=magic)
+
     generated_code = to_execute.substitute(
-        {"tables": flatten(tables or []), "db_type": db_type or "", "code": textwrap.dedent(code), "extra": ""}
+        {
+            "tables": flatten(tables or []),
+            "db_type": db_type or "",
+            "code_before": textwrap.dedent(code_before),
+            "code_after": textwrap.dedent(code_after),
+            "extra": "",
+        }
     )
     if verbose or noop:
         rich.print(generated_code, file=sys.stderr)
@@ -255,7 +323,8 @@ def handle_cli_create(
                     "tables": flatten(tables or []),
                     "db_type": db_type or "",
                     "extra": extra_code,
-                    "code": textwrap.dedent(code),
+                    "code_before": textwrap.dedent(code_before),
+                    "code_after": textwrap.dedent(code_after),
                 }
             )
 

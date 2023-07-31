@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
+from configuraptor import Singleton
 from rich import print
 from typer import Argument
 from typing_extensions import Never
@@ -16,7 +17,7 @@ from .cli_support import (
     find_git_root,
     get_absolute_path_info,
     get_file_for_version,
-    handle_cli_create,
+    handle_cli,
 )
 from .typer_support import (
     DEFAULT_VERBOSITY,
@@ -101,7 +102,8 @@ def create(
 
     text = get_file_for_version(file_absolute_path, file_version, prompt_description="table definition")
 
-    return handle_cli_create(
+    return handle_cli(
+        "",
         text,
         db_type=db_type.value if db_type else None,
         tables=config.tables,
@@ -117,6 +119,12 @@ def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
     db_type: DB_Types = None,
+    tables: Annotated[
+        Optional[list[str]],
+        typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
+    ] = None,
+    magic: Optional[bool] = None,
+    noop: Optional[bool] = None,
 ) -> bool:
     """
     Todo: docs
@@ -137,6 +145,8 @@ def alter(
     """
     git_root = find_git_root() or Path(os.getcwd())
 
+    config = state.update_config(magic=magic, noop=noop, tables=tables)
+
     before, after = extract_file_versions_and_paths(filename_before, filename_after)
 
     version_before, filename_before = before
@@ -150,7 +160,8 @@ def alter(
     if not (before_exists and after_exists):
         message = ""
         message += "" if before_exists else f"Path {filename_before} does not exist! "
-        message += "" if after_exists else f"Path {filename_after} does not exist!"
+        if filename_before != filename_after:
+            message += "" if after_exists else f"Path {filename_after} does not exist!"
         raise ValueError(message)
 
     code_before = get_file_for_version(
@@ -167,8 +178,15 @@ def alter(
     if code_before == code_after:
         raise ValueError("Both contain the same code!")
 
-    print(len(code_before), len(code_after), db_type)
-    return True
+    return handle_cli(
+        code_before,
+        code_after,
+        db_type=db_type.value if db_type else None,
+        tables=config.tables,
+        verbose=state.verbosity > Verbosity.normal,
+        noop=config.noop,
+        magic=config.magic,
+    )
 
 
 """
@@ -226,6 +244,11 @@ def main(
         version: display current version?
 
     """
+    if state.config:
+        # if a config already exists, it's outdated, so we clear it.
+        # only really applicable in Pytest scenarios where multiple commands are executed after eachother
+        Singleton.clear(state.config)
+
     state.load_config(config_file=config, verbosity=verbosity)
 
     if show_config:

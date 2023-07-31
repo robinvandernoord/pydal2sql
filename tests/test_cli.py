@@ -18,10 +18,15 @@ def test_cli_create():
         assert result.exit_code == 1
         assert "could not be found" in result.stderr
 
-        result = runner.invoke(app, ["create", "magic.py"])
+        result = runner.invoke(app, ["create", "magic.py@latest"])
         assert result.exit_code == 1
         assert not result.stdout
         assert "missing some variables" in result.stderr
+
+        result = runner.invoke(app, ["create", "magic.py@current"])
+        assert result.exit_code == 1
+        assert not result.stdout
+        assert "db defined in code!" in result.stderr
 
         result = runner.invoke(app, ["create", "magic.py", "--magic"])
         assert result.exit_code == 0
@@ -42,9 +47,11 @@ def test_cli_create():
 
 def test_cli_alter():
     with mock_git():
-        result = runner.invoke(app, ["alter", "missing.py"])
+        result = runner.invoke(app, ["alter", "missing.py", "missing2.py"])
         assert result.exit_code == 1
         assert "does not exist" in result.stderr
+        assert "missing.py" in result.stderr
+        assert "missing2.py" in result.stderr
 
         Path("empty.py").touch()
 
@@ -56,8 +63,13 @@ def test_cli_alter():
         assert result.exit_code == 1
         assert "contain the same code" in result.stderr
 
-        result = runner.invoke(app, ["alter", "magic.py"])
+        result = runner.invoke(app, ["alter", "magic.py", "--magic"])
+        print('++ stdout', result.stdout)
+        print('++ stderr', result.stderr)
         assert result.exit_code == 0
+        assert result.stdout
+
+
 
 def test_cli_version():
     result = runner.invoke(app, ["--version"])

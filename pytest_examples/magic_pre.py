@@ -11,8 +11,13 @@ db.define_table(
         default=my_method.new_uuid()
     ),
     Field("birthday", "datetime", default=datetime.datetime.utcnow()),
+    Field("removed")
 )
+
+db.define_table("old_table",
+                Field("old_field")
+                )
 
 db.define_table("empty")
 
-db_type = "sqlite"
+db_type = "psql"
