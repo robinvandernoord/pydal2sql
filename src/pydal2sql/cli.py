@@ -48,21 +48,21 @@ app = typer.Typer(
 state = ApplicationState()
 
 
-def info(*args: str) -> None:
+def info(*args: str) -> None:  # pragma: no cover
     """
     'print' but with blue text.
     """
     print(f"[blue]{' '.join(args)}[/blue]", file=sys.stderr)
 
 
-def warn(*args: str) -> None:
+def warn(*args: str) -> None:  # pragma: no cover
     """
     'print' but with yellow text.
     """
     print(f"[yellow]{' '.join(args)}[/yellow]", file=sys.stderr)
 
 
-def danger(*args: str) -> None:
+def danger(*args: str) -> None:  # pragma: no cover
     """
     'print' but with red text.
     """
@@ -80,7 +80,7 @@ def create(
     db_type: Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")] = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
-) -> None:
+) -> bool:
     """
     todo: docs
 
@@ -93,7 +93,7 @@ def create(
 
     config = state.update_config(magic=magic, noop=noop, tables=tables)
 
-    file_version, file_path = extract_file_version_and_path(filename or config.filename)
+    file_version, file_path = extract_file_version_and_path(filename or config.filename, default_version="current")
     file_exists, file_absolute_path = get_absolute_path_info(file_path, file_version, git_root)
 
     if not file_exists:
@@ -101,7 +101,7 @@ def create(
 
     text = get_file_for_version(file_absolute_path, file_version, prompt_description="table definition")
 
-    handle_cli_create(
+    return handle_cli_create(
         text,
         db_type=db_type.value if db_type else None,
         tables=config.tables,
@@ -117,7 +117,7 @@ def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
     db_type: DB_Types = None,
-) -> None:
+) -> bool:
     """
     Todo: docs
 
@@ -165,16 +165,17 @@ def alter(
         raise ValueError(message)
 
     if code_before == code_after:
-        print("[red]Both contain the same code![/red]", file=sys.stderr)
-        return
+        raise ValueError("Both contain the same code!")
 
     print(len(code_before), len(code_after), db_type)
+    return True
 
 
 """
 def pin:
 pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502  # -> default pin created
-pydal2sql alter myfile.py # should compare between pin/@latest and @current # replaces @current for Before, not for After in case of ALTER.
+pydal2sql alter myfile.py # should compare between pin/@latest and @current
+                          # replaces @current for Before, not for After in case of ALTER.
 pydal2sql pin --remove # -> default pin removed
 
 pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --name my_custom_name # -> pin '@my_custom_name' created
@@ -185,6 +186,7 @@ pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --remove -> pin '@my_cust
 pydal2sql pins
 # lists hash with name
 """
+
 
 def show_config_callback() -> Never:
     """
@@ -205,7 +207,7 @@ def version_callback() -> Never:
 
 @app.callback(invoke_without_command=True)
 def main(
-    ctx: typer.Context,
+    _: typer.Context,
     config: str = None,
     verbosity: Verbosity = DEFAULT_VERBOSITY,
     # stops the program:
@@ -213,14 +215,10 @@ def main(
     version: bool = False,
 ) -> None:
     """
-    This callback will run before every command, setting the right global flags.
-
-    Todo:
-        --noop
-        --magic
+    Todo: docs
 
     Args:
-        ctx: context to determine if a subcommand is passed, etc
+        _: context to determine if a subcommand is passed, etc
         config: path to a different config toml file
         verbosity: level of detail to print out (1 - 3)
 
@@ -234,10 +232,8 @@ def main(
         show_config_callback()
     elif version:
         version_callback()
-    elif not ctx.invoked_subcommand:
-        warn("Missing subcommand. Try `pydal2sql --help` for more info.")
     # else: just continue
 
 
-if __name__ == "__main__":
-    app()
+# if __name__ == "__main__":
+#     app()

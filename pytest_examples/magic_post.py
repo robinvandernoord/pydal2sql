@@ -1,3 +1,4 @@
+# this is the changed file
 
 my_method = SomeClass()['first']
 

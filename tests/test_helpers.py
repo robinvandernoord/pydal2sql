@@ -1,5 +1,6 @@
 import re
 import typing
+from pathlib import Path
 
 from src.pydal2sql.__about__ import __version__
 from src.pydal2sql.helpers import TempdirOrExistingDir, flatten, get_typing_args
@@ -26,3 +27,6 @@ def test_TempdirOrExistingDir():
 
     with TempdirOrExistingDir("real_dir") as real_dir:
         assert real_dir == "real_dir"
+
+    with TempdirOrExistingDir(Path("real_dir")) as real_dir:
+        assert real_dir == str(Path("real_dir"))

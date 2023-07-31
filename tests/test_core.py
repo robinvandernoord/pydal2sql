@@ -3,7 +3,7 @@ import pytest
 from pydal import DAL, Field
 
 from src.pydal2sql import SUPPORTED_DATABASE_TYPES, generate_sql
-from src.pydal2sql.core import _build_dummy_migrator
+from src.pydal2sql.core import _build_dummy_migrator, sql_fields_through_tablefile
 from src.pydal2sql.helpers import TempdirOrExistingDir
 
 
@@ -73,10 +73,8 @@ def test_alter():
             notnull=True,
         ),
         Field("birthday", "datetime"),  # replaced age with birthday
-
         # removed some properties
         Field("nicknames", "string"),  # your nickname must now be a varchar instead of text.
-
         Field("obj", "integer"),  # total type change
     )
 
@@ -84,11 +82,32 @@ def test_alter():
 
     assert "NOT NULL" in alter_statements
     assert "DROP COLUMN float" in alter_statements
+    assert "ADD birthday TIMESTAMP" in alter_statements
 
     alter_statements = generate_sql(old, new, db_type="sqlite")
+    # sql only adds columns
 
-    assert "NOT NULL" in alter_statements
-    assert "DROP COLUMN float" in alter_statements
+    assert "NOT NULL" not in alter_statements
+    assert "DROP COLUMN float" not in alter_statements
+    assert "ADD birthday TIMESTAMP" in alter_statements
+
+    # infer db type:
+    with pytest.raises(ValueError):
+        # could not infer from None DAL and None db_type:
+        generate_sql(old, new, db_type=None)
+
+    with pytest.raises(ValueError):
+        sql_fields_through_tablefile(new)
+
+    db = pydal.DAL("sqlite://:memory:", migrate=False)
+
+    before = db.define_table("empty")
+
+    after = db.define_table("empty", Field("empty"), redefine=True)
+
+    assert generate_sql(before, after)
+
+    assert sql_fields_through_tablefile(after)
 
 
 def test_invalid_dbtype():
@@ -105,8 +124,8 @@ def test_guess_db_type():
         sql = generate_sql(empty)
 
         assert (
-                sql.strip()
-                == """CREATE TABLE "empty"(
+            sql.strip()
+            == """CREATE TABLE "empty"(
     "id" INTEGER PRIMARY KEY AUTOINCREMENT
 );""".strip()
         )

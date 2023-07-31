@@ -92,46 +92,6 @@ def find_missing_variables(code: str) -> set[str]:
     return {var for var in used_variables if var not in defined_variables}
 
 
-# if __name__ == "__main__":
-#     # Example usage:
-#     code_string = """
-#     from math import floor
-#     import datetime
-#     from pydal import DAL
-#     a = 1
-#     b = 2
-#     print(a, b + c)
-#     d = e + b
-#     xyz
-#     floor(d)
-#     ceil(d)
-#     ceil(e)
-#
-#     datetime.utcnow()
-#
-#     db = DAL()
-#
-#     db.define_table('...')
-#
-#     for table in []:
-#         print(table)
-#
-#     if toble := True:
-#         print(toble)
-#     """
-#
-#     # import timeit
-#     #
-#     # print(
-#     #     timeit.timeit(lambda: find_missing_variables(code_string), number=10000)
-#     #
-#     #
-#     # )
-#
-#     missing_variables = find_missing_variables(code_string)
-#     assert missing_variables == {"c", "xyz", "ceil", "e"}, missing_variables
-
-
 def generate_magic_code(missing_vars: set[str]) -> str:
     """
     After finding missing vars, fill them in with an object that does nothing except return itself or an empty string.

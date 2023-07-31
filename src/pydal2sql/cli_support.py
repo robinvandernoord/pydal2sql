@@ -44,7 +44,7 @@ def has_stdin_data() -> bool:  # pragma: no cover
 AnyCallable = typing.Callable[..., typing.Any]
 
 
-def print_if_interactive(*args: typing.Any, pretty: bool = True, **kwargs: typing.Any) -> None:
+def print_if_interactive(*args: typing.Any, pretty: bool = True, **kwargs: typing.Any) -> None:  # pragma: no cover
     is_interactive = not has_stdin_data()
     _print = typing.cast(AnyCallable, rich.print if pretty else print)  # make mypy happy
     if is_interactive:
@@ -105,7 +105,7 @@ def get_file_for_commit(filename: str, commit_version: str = "latest", repo: Rep
 def get_file_for_version(filename: str, version: str, prompt_description: str = "") -> str:
     if version == "current":
         return Path(filename).read_text()
-    elif version == "stdin":
+    elif version == "stdin":  # pragma: no cover
         print_if_interactive(
             f"[blue]Please paste your define tables ({prompt_description}) code below "
             f"and press ctrl-D when finished.[/blue]",
@@ -118,7 +118,9 @@ def get_file_for_version(filename: str, version: str, prompt_description: str = 
         return get_file_for_commit(filename, version)
 
 
-def extract_file_version_and_path(file_path_or_git_tag: Optional[str]) -> tuple[str, str | None]:
+def extract_file_version_and_path(
+    file_path_or_git_tag: Optional[str], default_version: str = "stdin"
+) -> tuple[str, str | None]:
     """
 
     Examples:
@@ -130,7 +132,10 @@ def extract_file_version_and_path(file_path_or_git_tag: Optional[str]) -> tuple[
 
         @latest (implies no path, e.g. in case of ALTER to copy previously defined path)
     """
-    if not file_path_or_git_tag or file_path_or_git_tag == "-":
+    if not file_path_or_git_tag:
+        return default_version, ""
+
+    if file_path_or_git_tag == "-":
         return "stdin", "-"
 
     if file_path_or_git_tag.startswith("@"):
@@ -139,7 +144,7 @@ def extract_file_version_and_path(file_path_or_git_tag: Optional[str]) -> tuple[
     elif "@" in file_path_or_git_tag:
         file_path, file_version = file_path_or_git_tag.split("@")
     else:
-        file_version = "latest"
+        file_version = default_version  # `latest` for before; `current` for after.
         file_path = file_path_or_git_tag
 
     return file_version, file_path
@@ -148,8 +153,8 @@ def extract_file_version_and_path(file_path_or_git_tag: Optional[str]) -> tuple[
 def extract_file_versions_and_paths(
     filename_before: Optional[str], filename_after: Optional[str]
 ) -> tuple[tuple[str, str | None], tuple[str, str | None]]:
-    version_before, filepath_before = extract_file_version_and_path(filename_before)
-    version_after, filepath_after = extract_file_version_and_path(filename_after)
+    version_before, filepath_before = extract_file_version_and_path(filename_before, default_version="latest")
+    version_after, filepath_after = extract_file_version_and_path(filename_after, default_version="current")
 
     if not (filepath_before or filepath_after):
         raise ValueError("Please supply at least one file name.")
@@ -194,7 +199,7 @@ def handle_cli_create(
     verbose: Optional[bool] = False,
     noop: Optional[bool] = False,
     magic: Optional[bool] = False,
-) -> None:
+) -> bool:
     """
     Handle user input.
     """
@@ -241,7 +246,7 @@ def handle_cli_create(
                 rich.print(
                     f"Your code is missing some variables: {missing_vars}. Add these or try --magic", file=sys.stderr
                 )
-                return
+                return False
 
             extra_code = generate_magic_code(missing_vars)
 
@@ -255,6 +260,8 @@ def handle_cli_create(
             )
 
             if verbose:
-                print(generated_code, file=sys.stderr)
+                rich.print(generated_code, file=sys.stderr)
 
             exec(generated_code)  # nosec: B102
+
+    return True

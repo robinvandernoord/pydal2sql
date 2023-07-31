@@ -50,9 +50,15 @@ def create_enum_from_literal(name: str, literal_type: LiteralType) -> typing.Typ
 
     if hasattr(literal_type, "__args__"):
         for arg in typing.get_args(literal_type):
-            literals.extend(typing.get_args(arg))
+            if hasattr(arg, "__args__"):
+                # e.g. literal_type = typing.Union[typing.Literal['one', 'two']]
+                literals.extend(typing.get_args(arg))
+            else:
+                # e.g. literal_type = typing.Literal['one', 'two']
+                literals.append(arg)
     else:
-        literals.extend(typing.get_args(literal_type))
+        # e.g. literal_type = 'one'
+        literals.append(str(literal_type))
 
     literals.sort()
 
@@ -173,6 +179,7 @@ class Config(AbstractConfig):
     magic: bool = False
     noop: bool = False
     tables: Optional[list[str]] = None
+    pyproject: typing.Optional[str] = None
 
 
 MaybeConfig = Optional[Config]
@@ -209,7 +216,7 @@ def _get_pydal2sql_config(overwrites: dict[str, Any], toml_path: str = None) -> 
     return config
 
 
-def get_pydal2sql_config(verbosity: Verbosity = DEFAULT_VERBOSITY, toml_path: str = None, **overwrites: Any) -> Config:
+def get_pydal2sql_config(toml_path: str = None, verbosity: Verbosity = DEFAULT_VERBOSITY, **overwrites: Any) -> Config:
     """
     Load the relevant pyproject.toml config settings.
 
@@ -315,15 +322,16 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
             except Exception as e:
                 result = EXIT_CODE_ERROR
                 if hide_tb:
-                    rich.print(f"[red]{e}[/red]-", file=sys.stderr)
-                else:
+                    rich.print(f"[red]{e}[/red]", file=sys.stderr)
+                else:  # pragma: no cover
                     raise e
 
-            if result in (None, True):
-                # assume no issue then
-                result = EXIT_CODE_SUCCESS
-            elif result is False:
-                result = EXIT_CODE_ERROR
+            if isinstance(result, bool):
+                if result in (None, True):
+                    # assume no issue then
+                    result = EXIT_CODE_SUCCESS
+                elif result is False:
+                    result = EXIT_CODE_ERROR
 
             raise typer.Exit(code=int(result or 0))
 
@@ -332,7 +340,7 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
     return outer_wrapper
 
 
-def _is_debug() -> bool:
+def _is_debug() -> bool:  # pragma: no cover
     folder, _ = find_project_root((os.getcwd(),))
     if not folder:
         folder = Path(os.getcwd())
@@ -341,7 +349,7 @@ def _is_debug() -> bool:
     return os.getenv("IS_DEBUG") == "1"
 
 
-def is_debug() -> bool:
+def is_debug() -> bool:  # pragma: no cover
     with contextlib.suppress(Exception):
         return _is_debug()
     return False
