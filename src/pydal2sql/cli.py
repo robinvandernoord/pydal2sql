@@ -1,19 +1,10 @@
-import os
 import sys
 import typing
-from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
 from configuraptor import Singleton
-from pydal2sql_core.cli_support import (
-    extract_file_version_and_path,
-    extract_file_versions_and_paths,
-    find_git_root,
-    get_absolute_path_info,
-    get_file_for_version,
-    handle_cli,
-)
+from pydal2sql_core.cli_support import core_alter, core_create
 from rich import print
 from typer import Argument
 from typing_extensions import Never
@@ -89,31 +80,18 @@ def create(
         cat models.py | pydal2sql
         pydal2sql # output from stdin
     """
-    git_root = find_git_root() or Path(os.getcwd())
-
     config = state.update_config(
         magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
     )
 
-    file_version, file_path = extract_file_version_and_path(
-        filename, default_version="current" if filename else "stdin"
-    )
-    file_exists, file_absolute_path = get_absolute_path_info(file_path, file_version, git_root)
-
-    if not file_exists:
-        raise ValueError(f"Source file {filename} could not be found.")
-
-    text = get_file_for_version(file_absolute_path, file_version, prompt_description="table definition")
-
-    return handle_cli(
-        "",
-        text,
+    return core_create(
+        filename=filename,
         db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
         magic=config.magic,
-        function_name=config.function,
+        function=config.function,
     )
 
 
@@ -129,6 +107,7 @@ def alter(
     ] = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
+    function: Optional[str] = None,
 ) -> bool:
     """
     Todo: docs
@@ -147,49 +126,19 @@ def alter(
         # != alter myfile.py - # with - for cli
         # != alter - myfile.py
     """
-    git_root = find_git_root() or Path(os.getcwd())
-
-    config = state.update_config(magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None)
-
-    before, after = extract_file_versions_and_paths(filename_before, filename_after)
-
-    version_before, filename_before = before
-    version_after, filename_after = after
-
-    # either ./file exists or /file exists (seen from git root):
-
-    before_exists, before_absolute_path = get_absolute_path_info(filename_before, version_before, git_root)
-    after_exists, after_absolute_path = get_absolute_path_info(filename_after, version_after, git_root)
-
-    if not (before_exists and after_exists):
-        message = ""
-        message += "" if before_exists else f"Path {filename_before} does not exist! "
-        if filename_before != filename_after:
-            message += "" if after_exists else f"Path {filename_after} does not exist!"
-        raise ValueError(message)
-
-    code_before = get_file_for_version(
-        before_absolute_path, version_before, prompt_description="current table definition"
+    config = state.update_config(
+        magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
     )
-    code_after = get_file_for_version(after_absolute_path, version_after, prompt_description="desired table definition")
 
-    if not (code_before and code_after):
-        message = ""
-        message += "" if code_before else "Before code is empty (Maybe try `pydal2sql create`)! "
-        message += "" if code_after else "After code is empty! "
-        raise ValueError(message)
-
-    if code_before == code_after:
-        raise ValueError("Both contain the same code!")
-
-    return handle_cli(
-        code_before,
-        code_after,
+    return core_alter(
+        filename_before,
+        filename_after,
         db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
         noop=config.noop,
         magic=config.magic,
+        function=config.function,
     )
 
 
@@ -199,7 +148,6 @@ todo:
 - models.py with db import or define_tables method.
 - `public.` prefix
 """
-
 
 """
 def pin:
