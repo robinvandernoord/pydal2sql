@@ -31,7 +31,7 @@ def test_cli_create():
 
         result = runner.invoke(app, ["create", "magic.py", "--magic"])
         assert result.exit_code == 0
-        assert not result.stderr
+        assert "success" in result.stderr
         assert "CREATE" in result.stdout
 
         result = runner.invoke(app, ["--verbosity", "3", "create", "magic.py@latest", "--magic"])
@@ -71,6 +71,15 @@ def test_cli_alter():
         assert result.exit_code == 0
         assert result.stdout
 
+        syntax_error = Path("syntax.py")
+        syntax_error.write_text("0/0")
+
+        result = runner.invoke(app, ["alter", "empty.py", "syntax.py"])
+        assert result.exit_code == 1
+        assert "alter failed" in result.stderr
+
+        print(result.stderr)
+
 
 def test_cli_version():
     result = runner.invoke(app, ["--version"])
@@ -95,7 +104,7 @@ def test_with_import():
 
         assert result.exit_code == 0
 
-        assert not result.stderr
+        assert 'success' in result.stderr
         assert "CREATE TABLE something" in result.stdout
 
 
@@ -119,5 +128,5 @@ def test_with_function():
         )
         assert result.exit_code == 0
 
-        assert not result.stderr
+        assert 'success' in result.stderr
         assert "CREATE TABLE empty" in result.stdout

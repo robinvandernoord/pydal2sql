@@ -4,7 +4,9 @@ from typing import Annotated, Optional
 
 import typer
 from configuraptor import Singleton
+from pydal2sql_core import get_typing_args
 from pydal2sql_core.cli_support import core_alter, core_create
+from pydal2sql_core.types import DEFAULT_OUTPUT_FORMAT, SUPPORTED_OUTPUT_FORMATS
 from rich import print
 from typer import Argument
 from typing_extensions import Never
@@ -20,8 +22,6 @@ from .typer_support import (
 )
 
 ## type fuckery:
-DBType_Option = Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")]
-
 T = typing.TypeVar("T")
 
 OptionalArgument = Annotated[Optional[T], Argument()]
@@ -29,6 +29,19 @@ OptionalArgument = Annotated[Optional[T], Argument()]
 
 OptionalOption = Annotated[Optional[T], typer.Option()]
 # usage: (myparam: OptionalOption[some_type])
+
+DBType_Option = Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")]
+
+Tables_Option = Annotated[
+    Optional[list[str]],
+    typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
+]
+
+OutputFormat_Option = Annotated[
+    # Optional[SUPPORTED_OUTPUT_FORMATS],
+    Optional[str],
+    typer.Option("--format", "--fmt", help=f"One of {get_typing_args(SUPPORTED_OUTPUT_FORMATS)}"),
+]
 
 ### end typing stuff, start app:
 
@@ -63,14 +76,13 @@ def danger(*args: str) -> None:  # pragma: no cover
 @with_exit_code(hide_tb=not IS_DEBUG)
 def create(
     filename: OptionalArgument[str] = None,
-    tables: Annotated[
-        Optional[list[str]],
-        typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
-    ] = None,
+    tables: Tables_Option = None,
     db_type: DBType_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
     function: Optional[str] = None,
+    output_format: OutputFormat_Option = DEFAULT_OUTPUT_FORMAT,
+    output_file: Optional[str] = None,
 ) -> bool:
     """
     todo: docs
@@ -84,7 +96,7 @@ def create(
         magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
     )
 
-    return core_create(
+    if core_create(
         filename=filename,
         db_type=config.db_type,
         tables=config.tables,
@@ -92,7 +104,14 @@ def create(
         noop=config.noop,
         magic=config.magic,
         function=config.function,
-    )
+        output_format=typing.cast(SUPPORTED_OUTPUT_FORMATS, output_format),
+        output_file=output_file,
+    ):
+        print("[green] success! [/green]", file=sys.stderr)
+        return True
+    else:
+        print("[red] create failed! [/red]", file=sys.stderr)
+        return False
 
 
 @app.command()
@@ -101,13 +120,12 @@ def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
     db_type: DBType_Option = None,
-    tables: Annotated[
-        Optional[list[str]],
-        typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
-    ] = None,
+    tables: Tables_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
     function: Optional[str] = None,
+    output_format: OutputFormat_Option = DEFAULT_OUTPUT_FORMAT,
+    output_file: Optional[str] = None,
 ) -> bool:
     """
     Todo: docs
@@ -130,7 +148,7 @@ def alter(
         magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
     )
 
-    return core_alter(
+    if core_alter(
         filename_before,
         filename_after,
         db_type=config.db_type,
@@ -139,7 +157,14 @@ def alter(
         noop=config.noop,
         magic=config.magic,
         function=config.function,
-    )
+        output_format=typing.cast(SUPPORTED_OUTPUT_FORMATS, output_format),
+        output_file=output_file,
+    ):
+        print("[green] success! [/green]", file=sys.stderr)
+        return True
+    else:
+        print("[red] alter failed! [/red]", file=sys.stderr)
+        return False
 
 
 """
