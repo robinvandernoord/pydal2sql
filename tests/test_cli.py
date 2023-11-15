@@ -105,7 +105,7 @@ def test_with_import():
         assert result.exit_code == 0
 
         assert 'success' in result.stderr
-        assert "CREATE TABLE something" in result.stdout
+        assert "CREATE TABLE something" in result.stdout or 'CREATE TABLE "something"' in result.stdout
 
 
 def test_with_function():
@@ -129,4 +129,4 @@ def test_with_function():
         assert result.exit_code == 0
 
         assert 'success' in result.stderr
-        assert "CREATE TABLE empty" in result.stdout
+        assert "CREATE TABLE empty" in result.stdout or 'CREATE TABLE "empty"' in result.stdout
