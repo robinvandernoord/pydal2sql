@@ -1,5 +1,5 @@
 """
-Cli-specific support
+Cli-specific support.
 """
 import contextlib
 import functools
@@ -36,17 +36,29 @@ LiteralType = typing.TypeVar("LiteralType", str, typing.Union[str, str] | T_Lite
 
 
 class ReprEnumMeta(EnumMeta):
+    """
+    Give an Enum class a fancy repr.
+    """
+
     def __repr__(cls) -> str:  # sourcery skip
+        """
+        Print all of the enum's members.
+        """
         options = typing.cast(typing.Iterable[Enum], cls.__members__.values())  # for mypy
         members_repr = ", ".join(f"{m.value!r}" for m in options)
         return f"{cls.__name__}({members_repr})"
 
 
 class DynamicEnum(Enum, metaclass=ReprEnumMeta):
-    ...
+    """
+    Cmobine the enum class with the ReprEnumMeta metaclass.
+    """
 
 
 def create_enum_from_literal(name: str, literal_type: LiteralType) -> typing.Type[DynamicEnum]:
+    """
+    Transform a typing.Literal statement into an Enum.
+    """
     literals: list[str] = []
 
     if hasattr(literal_type, "__args__"):
@@ -266,7 +278,9 @@ class ApplicationState:
     config: MaybeConfig = None
 
     def __post_init__(self) -> None:
-        ...
+        """
+        Runs after the dataclass init.
+        """
 
     def load_config(self, **overwrites: Any) -> Config:
         """
@@ -315,7 +329,7 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
 
     When calling a command from a different command, _suppress=True can be added to not raise an Exit exception.
 
-    See also:
+    See Also:
         github.com:trialandsuccess/su6-checker
     """
 
@@ -355,6 +369,9 @@ def _is_debug() -> bool:  # pragma: no cover
 
 
 def is_debug() -> bool:  # pragma: no cover
+    """
+    Returns whether IS_DEBUG = 1 in the .env.
+    """
     with contextlib.suppress(Exception):
         return _is_debug()
     return False

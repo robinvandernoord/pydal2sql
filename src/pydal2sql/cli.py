@@ -1,3 +1,7 @@
+"""
+Create the Typer cli.
+"""
+
 import sys
 import typing
 from typing import Annotated, Optional
@@ -85,7 +89,10 @@ def create(
     output_file: Optional[str] = None,
 ) -> bool:
     """
-    todo: docs
+    Build the CREATE statements for one or more pydal/typedal tables.
+
+    Todo:
+        more docs
 
     Examples:
         pydal2sql create models.py
@@ -128,7 +135,10 @@ def alter(
     output_file: Optional[str] = None,
 ) -> bool:
     """
-    Todo: docs
+    Create the migration statements from one state to the other, by writing CREATE, ALTER and DROP statements.
+
+    Todo:
+        docs
 
     Examples:
         > pydal2sql alter @b3f24091a9201d6 examples/magic.py
@@ -167,30 +177,6 @@ def alter(
         return False
 
 
-"""
-todo:
-- db type in config
-- models.py with db import or define_tables method.
-- `public.` prefix
-"""
-
-"""
-def pin:
-pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502  # -> default pin created
-pydal2sql alter myfile.py # should compare between pin/@latest and @current
-                          # replaces @current for Before, not for After in case of ALTER.
-pydal2sql pin --remove # -> default pin removed
-
-pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --name my_custom_name # -> pin '@my_custom_name' created
-pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe503 --name my_custom_name #-> pin '@my_custom_name' overwritten
-pydal2sql create myfile.py@my_custom_name
-pydal2sql pin 96de5b37b586e75b8ac053b9bef7647f544fe502 --remove -> pin '@my_custom_name' removed
-
-pydal2sql pins
-# lists hash with name
-"""
-
-
 def show_config_callback() -> Never:
     """
     --show-config requested!
@@ -218,16 +204,7 @@ def main(
     version: bool = False,
 ) -> None:
     """
-    Todo: docs
-
-    Args:
-        _: context to determine if a subcommand is passed, etc
-        config: path to a different config toml file
-        verbosity: level of detail to print out (1 - 3)
-
-        show_config: display current configuration?
-        version: display current version?
-
+    This script can be used to generate the create or alter sql from pydal or typedal.
     """
     if state.config:
         # if a config already exists, it's outdated, so we clear it.
@@ -241,7 +218,3 @@ def main(
     elif version:
         version_callback()
     # else: just continue
-
-
-# if __name__ == "__main__":
-#     app()
