@@ -35,6 +35,7 @@ dev = [
     "python-semantic-release < 8",
     "psycopg2-binary",
     "pymysql",
+    "contextlib_chdir",
 ]
 
 all = [
