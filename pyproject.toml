@@ -19,12 +19,12 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "pydal2sql-core >= 0.2.0",
+    "pydal2sql-core >= 0.3.0",
     "su6", # bare without any checkers
     "rich",
     "pydal",
     "typer",
-    "configuraptor >= 1.15",
+    "configuraptor >= 1.23",
     "GitPython",
 ]
 
