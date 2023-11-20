@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.1 (2023-11-20)
+
+### Fix
+
+* **config:** More config via toml and load dotenv even if config via toml ([`f077ce7`](https://github.com/robinvandernoord/pydal2sql/commit/f077ce7ecfc094d3851ff2d579dc6f7d3c8e4fcb))
+
 ## v1.0.0 (2023-11-17)
 
 ### Feature
