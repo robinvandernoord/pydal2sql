@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2023-11-20)
+
+### Feature
+
+* You can now add an 'input' to the pyproject to automatically select the db definition file ([`66b1fcc`](https://github.com/robinvandernoord/pydal2sql/commit/66b1fcc49f35c022deedb29b7c3505773fe23ed7))
+
 ## v1.0.1 (2023-11-20)
 
 ### Fix
