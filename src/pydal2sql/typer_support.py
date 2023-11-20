@@ -19,8 +19,13 @@ import rich
 import tomli
 import typer
 from black.files import find_project_root
+from configuraptor import alias
 from configuraptor.helpers import find_pyproject_toml
-from pydal2sql_core.types import SUPPORTED_DATABASE_TYPES_WITH_ALIASES
+from pydal2sql_core.types import (
+    DEFAULT_OUTPUT_FORMAT,
+    SUPPORTED_DATABASE_TYPES_WITH_ALIASES,
+    SUPPORTED_OUTPUT_FORMATS,
+)
 from su6.core import (
     EXIT_CODE_ERROR,
     EXIT_CODE_SUCCESS,
@@ -192,11 +197,15 @@ class Config(AbstractConfig):
 
     # settings go here
     db_type: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = None
-    magic: bool = False
-    noop: bool = False
     tables: Optional[list[str]] = None
-    pyproject: typing.Optional[str] = None
+    magic: bool = False
     function: str = "define_tables"
+    format: SUPPORTED_OUTPUT_FORMATS = DEFAULT_OUTPUT_FORMAT  # noqa: A003
+    dialect: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = alias("db_type")  # noqa: RUF009
+    output: Optional[str] = None
+    noop: bool = False
+
+    pyproject: typing.Optional[str] = None
 
 
 MaybeConfig = Optional[Config]

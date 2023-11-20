@@ -10,7 +10,7 @@ import typer
 from configuraptor import Singleton
 from pydal2sql_core import get_typing_args
 from pydal2sql_core.cli_support import core_alter, core_create
-from pydal2sql_core.types import DEFAULT_OUTPUT_FORMAT, SUPPORTED_OUTPUT_FORMATS
+from pydal2sql_core.types import SUPPORTED_OUTPUT_FORMATS
 from rich import print
 from typer import Argument
 from typing_extensions import Never
@@ -85,7 +85,7 @@ def create(
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
     function: Optional[str] = None,
-    output_format: OutputFormat_Option = DEFAULT_OUTPUT_FORMAT,
+    output_format: OutputFormat_Option = None,
     output_file: Optional[str] = None,
 ) -> bool:
     """
@@ -100,7 +100,13 @@ def create(
         pydal2sql # output from stdin
     """
     config = state.update_config(
-        magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
+        magic=magic,
+        noop=noop,
+        tables=tables,
+        db_type=db_type.value if db_type else None,
+        function=function,
+        format=output_format,
+        output=output_file,
     )
 
     if core_create(
@@ -111,8 +117,8 @@ def create(
         noop=config.noop,
         magic=config.magic,
         function=config.function,
-        output_format=typing.cast(SUPPORTED_OUTPUT_FORMATS, output_format),
-        output_file=output_file,
+        output_format=config.format,
+        output_file=config.output,
     ):
         print("[green] success! [/green]", file=sys.stderr)
         return True
@@ -131,7 +137,7 @@ def alter(
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
     function: Optional[str] = None,
-    output_format: OutputFormat_Option = DEFAULT_OUTPUT_FORMAT,
+    output_format: OutputFormat_Option = None,
     output_file: Optional[str] = None,
 ) -> bool:
     """
@@ -147,15 +153,15 @@ def alter(
         > pydal2sql alter examples/magic.py@@b3f24091a9201d6 examples/magic_after_rename.py@latest
         compare magic.py (which was renamed to magic_after_rename.py),
             at a specific commit to the latest version in git (ignore workdir version).
-
-    Todo:
-        alter myfile.py # only one arg
-        # = alter myfile.py@latest myfile.py@current
-        # != alter myfile.py - # with - for cli
-        # != alter - myfile.py
     """
     config = state.update_config(
-        magic=magic, noop=noop, tables=tables, db_type=db_type.value if db_type else None, function=function
+        magic=magic,
+        noop=noop,
+        tables=tables,
+        db_type=db_type.value if db_type else None,
+        function=function,
+        format=output_format,
+        output=output_file,
     )
 
     if core_alter(
@@ -167,8 +173,8 @@ def alter(
         noop=config.noop,
         magic=config.magic,
         function=config.function,
-        output_format=typing.cast(SUPPORTED_OUTPUT_FORMATS, output_format),
-        output_file=output_file,
+        output_format=config.format,
+        output_file=config.output,
     ):
         print("[green] success! [/green]", file=sys.stderr)
         return True
