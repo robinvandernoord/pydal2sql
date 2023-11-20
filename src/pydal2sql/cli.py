@@ -106,11 +106,12 @@ def create(
         db_type=db_type.value if db_type else None,
         function=function,
         format=output_format,
+        input=filename,
         output=output_file,
     )
 
     if core_create(
-        filename=filename,
+        filename=config.input,
         db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,
@@ -161,12 +162,13 @@ def alter(
         db_type=db_type.value if db_type else None,
         function=function,
         format=output_format,
+        input=filename_before,
         output=output_file,
     )
 
     if core_alter(
-        filename_before,
-        filename_after,
+        config.input,
+        filename_after or config.input,
         db_type=config.db_type,
         tables=config.tables,
         verbose=state.verbosity > Verbosity.normal,

@@ -202,6 +202,7 @@ class Config(AbstractConfig):
     function: str = "define_tables"
     format: SUPPORTED_OUTPUT_FORMATS = DEFAULT_OUTPUT_FORMAT  # noqa: A003
     dialect: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = alias("db_type")  # noqa: RUF009
+    input: Optional[str] = None  # noqa: A003
     output: Optional[str] = None
     noop: bool = False
 
