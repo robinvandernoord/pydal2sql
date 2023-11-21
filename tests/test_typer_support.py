@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from src.pydal2sql.cli import DB_Types
+from src.pydal2sql.types import DB_Types
 from src.pydal2sql.typer_support import (
     Verbosity,
     create_enum_from_literal,

@@ -3,16 +3,12 @@ Create the Typer cli.
 """
 
 import sys
-import typing
-from typing import Annotated, Optional
+from typing import Optional
 
 import typer
 from configuraptor import Singleton
-from pydal2sql_core import get_typing_args
 from pydal2sql_core.cli_support import core_alter, core_create
-from pydal2sql_core.types import SUPPORTED_OUTPUT_FORMATS
 from rich import print
-from typer import Argument
 from typing_extensions import Never
 
 from .__about__ import __version__
@@ -20,34 +16,10 @@ from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
     ApplicationState,
-    DB_Types,
     Verbosity,
     with_exit_code,
 )
-
-## type fuckery:
-T = typing.TypeVar("T")
-
-OptionalArgument = Annotated[Optional[T], Argument()]
-# usage: (myparam: OptionalArgument[some_type])
-
-OptionalOption = Annotated[Optional[T], typer.Option()]
-# usage: (myparam: OptionalOption[some_type])
-
-DBType_Option = Annotated[DB_Types, typer.Option("--db-type", "--dialect", "-d")]
-
-Tables_Option = Annotated[
-    Optional[list[str]],
-    typer.Option("--table", "--tables", "-t", help="One or more table names, default is all tables."),
-]
-
-OutputFormat_Option = Annotated[
-    # Optional[SUPPORTED_OUTPUT_FORMATS],
-    Optional[str],
-    typer.Option("--format", "--fmt", help=f"One of {get_typing_args(SUPPORTED_OUTPUT_FORMATS)}"),
-]
-
-### end typing stuff, start app:
+from .types import DBType_Option, OptionalArgument, OutputFormat_Option, Tables_Option
 
 app = typer.Typer(
     no_args_is_help=True,
