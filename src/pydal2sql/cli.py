@@ -54,6 +54,7 @@ def create(
     filename: OptionalArgument[str] = None,
     tables: Tables_Option = None,
     db_type: DBType_Option = None,
+    dialect: DBType_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
     function: Optional[str] = None,
@@ -71,11 +72,13 @@ def create(
         cat models.py | pydal2sql
         pydal2sql # output from stdin
     """
+    dialect = db_type.value if db_type else dialect.value if dialect else None
+
     config = state.update_config(
         magic=magic,
         noop=noop,
         tables=tables,
-        db_type=db_type.value if db_type else None,
+        dialect=dialect,
         function=function,
         format=output_format,
         input=filename,
@@ -106,6 +109,7 @@ def alter(
     filename_before: OptionalArgument[str] = None,
     filename_after: OptionalArgument[str] = None,
     db_type: DBType_Option = None,
+    dialect: DBType_Option = None,
     tables: Tables_Option = None,
     magic: Optional[bool] = None,
     noop: Optional[bool] = None,
@@ -127,11 +131,13 @@ def alter(
         compare magic.py (which was renamed to magic_after_rename.py),
             at a specific commit to the latest version in git (ignore workdir version).
     """
+    dialect = db_type.value if db_type else dialect.value if dialect else None
+
     config = state.update_config(
         magic=magic,
         noop=noop,
         tables=tables,
-        db_type=db_type.value if db_type else None,
+        db_type=dialect,
         function=function,
         format=output_format,
         input=filename_before,

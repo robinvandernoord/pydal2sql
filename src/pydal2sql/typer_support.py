@@ -19,7 +19,7 @@ import rich
 import tomli
 import typer
 from black.files import find_project_root
-from configuraptor import alias
+from configuraptor import alias, postpone
 from configuraptor.helpers import find_pyproject_toml
 from pydal2sql_core.types import (
     DEFAULT_OUTPUT_FORMAT,
@@ -187,7 +187,7 @@ class AbstractConfig(configuraptor.TypedConfig, configuraptor.Singleton):
 DB_Types: typing.Any = create_enum_from_literal("DBType", SUPPORTED_DATABASE_TYPES_WITH_ALIASES)
 
 
-@dataclass
+# @dataclass
 class Config(AbstractConfig):
     """
     Used as typed version of the [tool.pydal2sql] part of pyproject.toml.
@@ -196,7 +196,7 @@ class Config(AbstractConfig):
     """
 
     # settings go here
-    db_type: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = None
+    db_type: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = postpone()
     tables: Optional[list[str]] = None
     magic: bool = False
     function: str = "define_tables"
