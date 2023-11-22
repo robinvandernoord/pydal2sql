@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.1 (2023-11-22)
+
+### Fix
+
+* **cli:** Some properties are not yet known before the cli args are parsed ([`a6909a2`](https://github.com/robinvandernoord/pydal2sql/commit/a6909a24df24acaef0fdc556a82e0986d7a0d9ed))
+* Moved types to own file for re-use ([`e85228d`](https://github.com/robinvandernoord/pydal2sql/commit/e85228ddf2b69bebb55ab4b349d06b6ca57b8299))
+
 ## v1.1.0 (2023-11-20)
 
 ### Feature
