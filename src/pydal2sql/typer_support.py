@@ -201,7 +201,7 @@ class Config(AbstractConfig):
     magic: bool = False
     function: str = "define_tables"
     format: SUPPORTED_OUTPUT_FORMATS = DEFAULT_OUTPUT_FORMAT  # noqa: A003
-    dialect: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = alias("db_type")  # noqa: RUF009
+    dialect: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = alias("db_type")
     input: Optional[str] = None  # noqa: A003
     output: Optional[str] = None
     noop: bool = False
@@ -354,6 +354,9 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
                     rich.print(f"[red]{e}[/red]", file=sys.stderr)
                 else:  # pragma: no cover
                     raise e
+            finally:
+                sys.stdout.flush()
+                sys.stderr.flush()
 
             if isinstance(result, bool):
                 if result in (None, True):
