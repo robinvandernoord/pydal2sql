@@ -74,16 +74,16 @@ def create(
     """
     dialect = db_type.value if db_type else dialect.value if dialect else None
 
+
     config = state.update_config(
         magic=magic,
         noop=noop,
         tables=tables,
-        dialect=dialect,
         function=function,
         format=output_format,
         input=filename,
         output=output_file,
-    )
+    ).update(dialect=dialect, _allow_none=True)
 
     if core_create(
         filename=config.input,
@@ -137,12 +137,11 @@ def alter(
         magic=magic,
         noop=noop,
         tables=tables,
-        db_type=dialect,
         function=function,
         format=output_format,
         input=filename_before,
         output=output_file,
-    )
+    ).update(dialect=dialect, _allow_none=True)
 
     if core_alter(
         config.input,

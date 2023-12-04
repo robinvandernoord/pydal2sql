@@ -96,11 +96,11 @@ def test_cli_config():
 
 def test_with_import():
     with chdir("./pytest_examples"):
-        result = runner.invoke(app, ["create", "magic_with_import.py", "--no-magic"])
+        result = runner.invoke(app, ["create", "magic_with_import.py", "--no-magic", "--db-type", "sqlite"])
         assert result.exit_code == 1
         assert "Local imports are used in this file" in result.stderr
 
-        result = runner.invoke(app, ["create", "magic_with_import.py", "--magic"])
+        result = runner.invoke(app, ["create", "magic_with_import.py", "--magic", "--db-type", "sqlite"])
 
         assert result.exit_code == 0
 
@@ -122,6 +122,8 @@ def test_with_function():
                 "create",
                 "magic_with_function.py",
                 "--magic",
+                "--db-type",
+                "sqlite",
                 "--function",
                 "define_tables_multiple_arguments(db, 'empty')",
             ],
