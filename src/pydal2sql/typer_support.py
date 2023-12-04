@@ -354,6 +354,9 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
                     rich.print(f"[red]{e}[/red]", file=sys.stderr)
                 else:  # pragma: no cover
                     raise e
+            finally:
+                sys.stdout.flush()
+                sys.stderr.flush()
 
             if isinstance(result, bool):
                 if result in (None, True):
