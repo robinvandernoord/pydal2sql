@@ -2,6 +2,14 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.2 (2023-12-04)
+
+### Fix
+
+* Ensure stdout/stderr are written (flushed) before exiting ([`da8af45`](https://github.com/robinvandernoord/pydal2sql/commit/da8af450f45a963333076b726e5d6fc77d75f76d))
+* Update db_type with None so postponed() error doesn't get raised ([`845aab3`](https://github.com/robinvandernoord/pydal2sql/commit/845aab3a30e061e669c4f5d3204b026c4ea793dd))
+* Update db_type with None so postponed() error doesn't get raised ([`c353598`](https://github.com/robinvandernoord/pydal2sql/commit/c353598ca45d8d95e8c45a81a81b8ff1dbe0e4f6))
+
 ## v1.1.1 (2023-11-22)
 
 ### Fix
