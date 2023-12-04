@@ -74,7 +74,6 @@ def create(
     """
     dialect = db_type.value if db_type else dialect.value if dialect else None
 
-
     config = state.update_config(
         magic=magic,
         noop=noop,
