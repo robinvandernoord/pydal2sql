@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.4 (2024-04-17)
+
+### Fix
+
+* **bump-core:** If 'default=' is a callable, it's result is NOT stored in the CREATE statement ([`cdc28ee`](https://github.com/robinvandernoord/pydal2sql/commit/cdc28ee408458e5b71ce5fa716cf131756eb921b))
+
 ## v1.1.3 (2024-03-20)
 
 ### Fix
