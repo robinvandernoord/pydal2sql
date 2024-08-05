@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2024-08-05)
+
+### Feature
+
+* Add functionality to generate a stub migration ([`d490f6e`](https://github.com/robinvandernoord/pydal2sql/commit/d490f6e649ce96df7cc6bc897a90c16192222656))
+
 ## v1.1.5 (2024-07-04)
 
 ### Fix
