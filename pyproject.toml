@@ -19,10 +19,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "pydal2sql-core >= 0.3.8",
-    "su6", # bare without any checkers
-    "rich",
+    "pydal2sql-core >= 0.4.0",
     "pydal",
+    "su6", # bare without any checkers for some cli tools
+    "rich",
     "typer",
     "configuraptor >= 1.23",
     "GitPython",
@@ -132,7 +132,9 @@ exclude = ["venv", ".bak"]
 [tool.ruff]
 target-version = "py310"
 line-length = 120
+extend-exclude = ["*.bak/", "venv*/"]
 
+[tool.ruff.lint]
 select = [
     "F", # pyflake error
     "E", # pycodestyle error
@@ -156,7 +158,6 @@ extend-ignore = [
     "E711",
 ]
 
-extend-exclude = ["*.bak/", "venv*/"]
 
 ignore = [
     "RUF013", # implicit optional

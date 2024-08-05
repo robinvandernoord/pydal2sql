@@ -1,6 +1,7 @@
 """
 Cli-specific support.
 """
+
 import contextlib
 import functools
 import inspect
@@ -35,10 +36,6 @@ from su6.core import (
 )
 from typing_extensions import Never
 
-T_Literal = typing._SpecialForm
-
-LiteralType = typing.TypeVar("LiteralType", str, typing.Union[str, str] | T_Literal)
-
 
 class ReprEnumMeta(EnumMeta):
     """
@@ -60,9 +57,11 @@ class DynamicEnum(Enum, metaclass=ReprEnumMeta):
     """
 
 
-def create_enum_from_literal(name: str, literal_type: LiteralType) -> typing.Type[DynamicEnum]:
+def create_enum_from_literal(name: str, literal_type: typing.Any) -> typing.Type[DynamicEnum]:
     """
     Transform a typing.Literal statement into an Enum.
+
+    literal_type can be a typing.Literal or a Union of Literals
     """
     literals: list[str] = []
 
@@ -200,9 +199,9 @@ class Config(AbstractConfig):
     tables: Optional[list[str]] = None
     magic: bool = False
     function: str = "define_tables"
-    format: SUPPORTED_OUTPUT_FORMATS = DEFAULT_OUTPUT_FORMAT  # noqa: A003
+    format: SUPPORTED_OUTPUT_FORMATS = DEFAULT_OUTPUT_FORMAT
     dialect: typing.Optional[SUPPORTED_DATABASE_TYPES_WITH_ALIASES] = alias("db_type")
-    input: Optional[str] = None  # noqa: A003
+    input: Optional[str] = None
     output: Optional[str] = None
     noop: bool = False
 
@@ -212,7 +211,7 @@ class Config(AbstractConfig):
 MaybeConfig = Optional[Config]
 
 
-def _get_pydal2sql_config(overwrites: dict[str, Any], toml_path: str = None) -> MaybeConfig:
+def _get_pydal2sql_config(overwrites: dict[str, Any], toml_path: Optional[str | Path] = None) -> MaybeConfig:
     """
     Parse the users pyproject.toml (found using black's logic) and extract the tool.pydal2sql part.
 
@@ -237,7 +236,7 @@ def _get_pydal2sql_config(overwrites: dict[str, Any], toml_path: str = None) -> 
 
     config = configuraptor.load_into(Config, tool_config, key="pydal2sql")
 
-    config.update(pyproject=toml_path)
+    config.update(pyproject=str(toml_path))
     config.update(**overwrites)
 
     return config

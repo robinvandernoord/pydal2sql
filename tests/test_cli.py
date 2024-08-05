@@ -81,6 +81,13 @@ def test_cli_alter():
         print(result.stderr)
 
 
+def test_cli_stub():
+    # mostly already tested in pydal2sql-core
+    result = runner.invoke(app, ["stub"])
+    assert result.exit_code == 0
+    assert result.stdout.strip() == "-- stub_migration"
+
+
 def test_cli_version():
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
@@ -102,7 +109,7 @@ def test_with_import():
 
         result = runner.invoke(app, ["create", "magic_with_import.py", "--magic", "--db-type", "sqlite"])
 
-        assert result.exit_code == 0
+        assert result.exit_code == 0, result.stderr
 
         assert 'success' in result.stderr
         assert "CREATE TABLE something" in result.stdout or 'CREATE TABLE "something"' in result.stdout

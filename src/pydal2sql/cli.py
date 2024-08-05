@@ -3,11 +3,12 @@ Create the Typer cli.
 """
 
 import sys
+import typing
 from typing import Optional
 
 import typer
 from configuraptor import Singleton
-from pydal2sql_core.cli_support import core_alter, core_create
+from pydal2sql_core.cli_support import core_alter, core_create, core_stub
 from rich import print
 from typing_extensions import Never
 
@@ -159,6 +160,38 @@ def alter(
     else:
         print("[red] alter failed! [/red]", file=sys.stderr)
         return False
+
+
+@app.command()
+@with_exit_code(hide_tb=not IS_DEBUG)
+def stub(
+    migration_name: typing.Annotated[str, typer.Argument()] = "stub_migration",
+    output_format: OutputFormat_Option = None,
+    output_file: Optional[str] = None,
+    dry_run: typing.Annotated[bool, typer.Option("--dry", "--dry-run")] = False,
+    is_typedal: typing.Annotated[bool, typer.Option("--typedal", "-t")] = False,
+) -> bool:
+    """
+    Command to generate a stub migration.
+
+    Returns:
+        bool: True if the stub migration is generated successfully, False otherwise.
+
+    This command updates the configuration with the provided options and calls the core_stub function to generate the
+    migration.
+    """
+    config = state.update_config(
+        format=output_format,
+        output=output_file,
+    )
+
+    return core_stub(
+        migration_name,  # raw, without date or number
+        output_format=config.format,
+        output_file=config.output,
+        dry_run=dry_run,
+        is_typedal=is_typedal,
+    )
 
 
 def show_config_callback() -> Never:
