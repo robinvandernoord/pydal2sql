@@ -116,6 +116,10 @@ dialect = "postgres" # postgres, mysql or sqlite
 magic = true
 noop = false
 tables = ["table1", "table2"]
+function = "define_tables"
+format = "default" # or edwh-migrate
+input = "path/to/data_model.py"
+output = "path/to/migrations.py"
 ```
 
 All keys are optional.
@@ -171,7 +175,7 @@ print(
 ```sql
 CREATE TABLE person
 (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    id        SERIAL PRIMARY KEY,
     name      VARCHAR(512),
     age       INTEGER,
     float     NUMERIC(2, 3),
