@@ -22,11 +22,13 @@ import typer
 from black.files import find_project_root
 from configuraptor import alias, postpone
 from configuraptor.helpers import find_pyproject_toml
+from pydal2sql_core.state import *  # noqa
 from pydal2sql_core.types import (
     DEFAULT_OUTPUT_FORMAT,
     SUPPORTED_DATABASE_TYPES_WITH_ALIASES,
     SUPPORTED_OUTPUT_FORMATS,
 )
+from su6 import find_project_root
 from su6.core import (
     EXIT_CODE_ERROR,
     EXIT_CODE_SUCCESS,
@@ -35,9 +37,7 @@ from su6.core import (
     T_Outer_Wrapper,
 )
 from typing_extensions import Never
-from su6 import find_project_root
 
-from pydal2sql_core.state import *  # noqa
 
 def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
     """
@@ -82,6 +82,7 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
         return inner_wrapper
 
     return outer_wrapper
+
 
 def _is_debug() -> bool:  # pragma: no cover
     folder, _ = find_project_root((os.getcwd(),))

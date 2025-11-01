@@ -17,8 +17,8 @@ from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
     ApplicationState,
-    state,
     Verbosity,
+    state,
     with_exit_code,
 )
 from .types import DBType_Option, OptionalArgument, OutputFormat_Option, Tables_Option
@@ -26,6 +26,7 @@ from .types import DBType_Option, OptionalArgument, OutputFormat_Option, Tables_
 app = typer.Typer(
     no_args_is_help=True,
 )
+
 
 def info(*args: str) -> None:  # pragma: no cover
     """

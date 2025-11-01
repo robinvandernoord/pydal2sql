@@ -1,17 +1,18 @@
 """
 Todo: test with Typer
 """
+
 import typing
 from pathlib import Path
 
 import pytest
 
-from src.pydal2sql.types import DB_Types
 from src.pydal2sql.typer_support import (
     Verbosity,
     create_enum_from_literal,
     get_pydal2sql_config,
 )
+from src.pydal2sql.types import DB_Types
 
 
 def test_enum_typer():
