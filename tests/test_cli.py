@@ -10,7 +10,7 @@ from src.pydal2sql.cli import app
 from tests.mock_git import mock_git
 
 # by default, click's cli runner mixes stdout and stderr for some reason...
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def test_cli_create():
