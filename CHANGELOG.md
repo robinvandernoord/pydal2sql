@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.0 (2025-11-01)
+
+### Fix
+
+* Moved state class to pydal2sql-core so that can access those variables too. + fixes with config variables not being set properly ([`12b9b8a`](https://github.com/robinvandernoord/pydal2sql/commit/12b9b8a3f4301b2bdc42ef9d4eaf03cd8a4664c0))
+
+### Documentation
+
+* Listed more config options ([`304e263`](https://github.com/robinvandernoord/pydal2sql/commit/304e2634d0b7636853cc3175acd38f5d331343cf))
+
 ## v1.2.0 (2024-08-05)
 
 ### Feature
