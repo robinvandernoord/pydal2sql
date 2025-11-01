@@ -17,6 +17,7 @@ from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
     ApplicationState,
+    state,
     Verbosity,
     with_exit_code,
 )
@@ -25,8 +26,6 @@ from .types import DBType_Option, OptionalArgument, OutputFormat_Option, Tables_
 app = typer.Typer(
     no_args_is_help=True,
 )
-state = ApplicationState()
-
 
 def info(*args: str) -> None:  # pragma: no cover
     """
@@ -78,12 +77,13 @@ def create(
     config = state.update_config(
         magic=magic,
         noop=noop,
+        dialect=dialect,
         tables=tables,
         function=function,
         format=output_format,
         input=filename,
         output=output_file,
-    ).update(dialect=dialect, _allow_none=True)
+    )
 
     if core_create(
         filename=config.input,
@@ -215,7 +215,7 @@ def version_callback() -> Never:
 def main(
     _: typer.Context,
     config: str = None,
-    verbosity: Verbosity = DEFAULT_VERBOSITY,
+    verbosity: Verbosity = None,
     # stops the program:
     show_config: bool = False,
     version: bool = False,
@@ -227,6 +227,9 @@ def main(
         # if a config already exists, it's outdated, so we clear it.
         # only really applicable in Pytest scenarios where multiple commands are executed after eachother
         Singleton.clear(state.config)
+
+    if verbosity is None:
+        verbosity = DEFAULT_VERBOSITY
 
     state.load_config(config_file=config, verbosity=verbosity)
 
