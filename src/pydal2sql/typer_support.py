@@ -2,32 +2,12 @@
 Cli-specific support.
 """
 
-import contextlib
 import functools
-import inspect
-import operator
-import os
-import sys
-import typing
-from dataclasses import dataclass
-from enum import Enum, EnumMeta
-from pathlib import Path
-from typing import Any, Optional
 
-import configuraptor
 import dotenv
 import rich
-import tomli
 import typer
 from black.files import find_project_root
-from configuraptor import alias, postpone
-from configuraptor.helpers import find_pyproject_toml
-from pydal2sql_core.state import *  # noqa
-from pydal2sql_core.types import (
-    DEFAULT_OUTPUT_FORMAT,
-    SUPPORTED_DATABASE_TYPES_WITH_ALIASES,
-    SUPPORTED_OUTPUT_FORMATS,
-)
 from su6 import find_project_root
 from su6.core import (
     EXIT_CODE_ERROR,
@@ -37,6 +17,8 @@ from su6.core import (
     T_Outer_Wrapper,
 )
 from typing_extensions import Never
+
+from pydal2sql_core.state import *  # noqa
 
 
 def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
