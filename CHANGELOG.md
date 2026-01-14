@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.1 (2026-01-14)
+
+### Documentation
+
+* Mark support for newer python versions ([`efa56d1`](https://github.com/robinvandernoord/pydal2sql/commit/efa56d1c04fcba2506fa6ea5c8a184a380249417))
+
 ## v1.3.0 (2025-11-01)
 
 ### Fix
