@@ -9,14 +9,13 @@ from typing import Optional
 import typer
 from configuraptor import Singleton
 from pydal2sql_core.cli_support import core_alter, core_create, core_stub
-from rich import print
+from rich import print  # noqa: A004
 from typing_extensions import Never
 
 from .__about__ import __version__
 from .typer_support import (
     DEFAULT_VERBOSITY,
     IS_DEBUG,
-    ApplicationState,
     Verbosity,
     state,
     with_exit_code,
@@ -78,7 +77,7 @@ def create(
     config = state.update_config(
         magic=magic,
         noop=noop,
-        dialect=dialect,
+        db_type=dialect,
         tables=tables,
         function=function,
         format=output_format,

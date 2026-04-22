@@ -3,7 +3,7 @@ name = "pydal2sql"
 dynamic = ["version"]
 description = "Convert pydal define_tables to SQL using pydal's CREATE TABLE logic."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 keywords = ["pydal", "sql", "databases"]
 authors = [
@@ -12,8 +12,6 @@ authors = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
@@ -21,7 +19,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-    "pydal2sql-core >= 0.5.0",
+    "pydal2sql-core >= 0.6.1",
     "pydal",
     "su6 >= 1.10.0", # bare without any checkers for some cli tools
     "rich",
@@ -99,7 +97,7 @@ magic = true
 tables = ["person"]
 
 [tool.black]
-target-version = ["py310"]
+target-version = ["py312"]
 line-length = 120
 # 'extend-exclude' excludes files or directories in addition to the defaults
 extend-exclude = '''
@@ -113,7 +111,7 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 
 # `some: int = None` looks nicer than `some: int | None = None` and pycharm still understands it
 no_implicit_optional = false  # I guess 'strict_optional' should be true, but disable this one because it's double!
@@ -132,7 +130,7 @@ strict = true
 exclude = ["venv", ".bak"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py312"
 line-length = 120
 extend-exclude = ["*.bak/", "venv*/", "pytest_examples/*"]
 

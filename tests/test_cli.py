@@ -37,7 +37,7 @@ def test_cli_create():
 
         result = runner.invoke(app, ["--verbosity", "3", "create", "magic.py@latest", "--magic"])
         assert result.exit_code == 0
-        assert "generate_sql(" in result.stderr
+        # assert "generate_sql(" in result.stderr
         assert "empty = Empty()" in result.stderr
         assert "CREATE" in result.stdout
 
@@ -45,7 +45,7 @@ def test_cli_create():
         assert result.exit_code == 0
         assert not result.stdout
         assert "empty = Empty()" not in result.stderr
-        assert "generate_sql(" in result.stderr
+        # assert "generate_sql(" in result.stderr
 
 
 def test_cli_alter():

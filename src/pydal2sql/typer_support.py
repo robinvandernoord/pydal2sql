@@ -2,12 +2,25 @@
 Cli-specific support.
 """
 
+import contextlib
 import functools
+import os
+import sys
+from pathlib import Path
+from typing import Any, Never
 
 import dotenv
 import rich
 import typer
-from black.files import find_project_root
+from pydal2sql_core.state import (
+    DEFAULT_VERBOSITY,
+    ApplicationState,
+    DB_Types,
+    Verbosity,
+    create_enum_from_literal,
+    get_pydal2sql_config,
+    state,
+)
 from su6 import find_project_root
 from su6.core import (
     EXIT_CODE_ERROR,
@@ -16,9 +29,19 @@ from su6.core import (
     T_Inner_Wrapper,
     T_Outer_Wrapper,
 )
-from typing_extensions import Never
 
-from pydal2sql_core.state import *  # noqa
+__all__ = [
+    "DEFAULT_VERBOSITY",
+    "IS_DEBUG",
+    "ApplicationState",
+    "DB_Types",
+    "Verbosity",
+    "create_enum_from_literal",
+    "get_pydal2sql_config",
+    "is_debug",
+    "state",
+    "with_exit_code",
+]
 
 
 def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
@@ -52,12 +75,11 @@ def with_exit_code(hide_tb: bool = True) -> T_Outer_Wrapper:
                 sys.stdout.flush()
                 sys.stderr.flush()
 
-            if isinstance(result, bool):
-                if result in (None, True):
-                    # assume no issue then
-                    result = EXIT_CODE_SUCCESS
-                elif result is False:
-                    result = EXIT_CODE_ERROR
+            if result is True:
+                # assume no issue then
+                result = EXIT_CODE_SUCCESS
+            elif result is False:
+                result = EXIT_CODE_ERROR
 
             raise typer.Exit(code=int(result or 0))
 

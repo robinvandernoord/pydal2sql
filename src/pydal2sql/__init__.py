@@ -13,6 +13,6 @@ from pydal2sql_core.types import SUPPORTED_DATABASE_TYPES as _SUPPORTED_DATABASE
 SUPPORTED_DATABASE_TYPES = get_typing_args(_SUPPORTED_DATABASE_TYPES)
 
 __all__ = [
-    "generate_sql",
     "SUPPORTED_DATABASE_TYPES",
+    "generate_sql",
 ]
