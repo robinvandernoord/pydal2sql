@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.3 (2026-04-22)
+
+### Fix
+
+* Re-export everything from pydal2sql_core.state in typer_support again ([`45eb1ed`](https://github.com/robinvandernoord/pydal2sql/commit/45eb1ed655b7df1acdd39722ff5714bc40ddd0e0))
+
 ## v1.3.2 (2026-04-22)
 
 ### Fix
