@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.5 (2026-04-22)
+
+### Fix
+
+* Bump core version ([`11a52b9`](https://github.com/robinvandernoord/pydal2sql/commit/11a52b911a5548391530ccde0203d66fc9514fde))
+
 ## v1.3.4 (2026-04-22)
 
 ### Fix
