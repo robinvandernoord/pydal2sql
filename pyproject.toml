@@ -1,3 +1,7 @@
+[build-system]
+requires = ["uv_build>=0.12.4,<0.13"]
+build-backend = "uv_build"
+
 [project]
 name = "pydal2sql"
 description = "Convert pydal define_tables to SQL using pydal's CREATE TABLE logic."
@@ -103,10 +107,6 @@ break = "major"
 feat = "minor"
 fix = "patch"
 perf = "patch"
-
-[build-system]
-requires = ["uv_build"]
-build-backend = "uv_build"
 
 [template.plugins.default]
 src-layout = true
